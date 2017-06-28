@@ -16,11 +16,12 @@ services:
 
   nginx-gen:
     restart: always
-    image: jwilder/docker-gen
+    build: ./samples/nginx-gen
     container_name: nginx-gen
+    depends_on:
+      - nginx
     volumes:
       - "/var/run/docker.sock:/tmp/docker.sock:ro"
-      - "./volumes/proxy/templates/nginx.tmpl:/etc/docker-gen/templates/nginx.tmpl:ro"
     volumes_from:
       - nginx
     entrypoint: /usr/local/bin/docker-gen -notify-sighup nginx -watch -wait 5s:30s /etc/docker-gen/templates/nginx.tmpl /etc/nginx/conf.d/default.conf
@@ -29,6 +30,9 @@ services:
     restart: always
     image: jrcs/letsencrypt-nginx-proxy-companion
     container_name: letsencrypt-nginx-proxy-companion
+    depends_on:
+      - nginx
+      - nginx-gen
     volumes_from:
       - nginx
     volumes:
