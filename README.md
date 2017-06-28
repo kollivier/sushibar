@@ -6,25 +6,60 @@ The place where all the sushi chefs hang out.
 Features
 --------
   - Dashboard to monitor chefs' progress, logs, and run history
-  - Remote control of a chef scrpts started in daemon mode
-
+  - Remote control of a chefs started in daemon mode
 
 
 
 Production setup
-================
+----------------
 Before we set this up as a kubernetes, we can test all the dockerization using
 the tools `docker-machine` and `docker-compose`.
 
     # 1. setup env vars that proxy local docker commands to the docker host `sushibarhost`
     eval $(docker-machine env sushibarhost)
 
-    # 2. start all containers
-    docker-compose -f production.yml  up
+    # 2. create network
+    docker network create nginx-proxy
+
+    # 3. start all containers
+    docker-compose -f production.yml up -d
+
+    # check what's running
+    docker ps
+
+Possibly use https://github.com/kubernetes-incubator/kompose to generate the
+Kubernetes config from `production.yml` when it's done.
+
+
+
+Debugging
+---------
+
+See what's going on:
+
+    docker ps
+    docker-compose -f production.yml  logs
+
+Run bash inside container, while allocating a tty and using interactive mode:
+
+    docker exec -ti nginx  /bin/bash
+
+
+Show all the network info
+
+    docker network ls
+    docker network ls -q | xargs docker network inspect
+
+
+Volumes check
+
+    docker volume ls
+    docker volume rm <volume id>
 
 
 
 Restart from scratch
+--------------------
 
     # bring containers down and make sure volumes are deleted
     docker-compose -f production.yml  down -v
@@ -39,7 +74,8 @@ Restart from scratch
     # rebuild
     docker-compose -f production.yml  build --no-cache
 
-    docker-compose -f production.yml  up
+    docker-compose -f production.yml  up  # prints combined strout from all containers
+
 
 
 
