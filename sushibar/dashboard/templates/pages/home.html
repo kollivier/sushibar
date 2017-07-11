@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+{% block content %}
+{% for title, channels in channels.items %}
+<div class="card-table card">
+  <div class="card-header">
+    <div class="row">
+      <div class="col col-xs-6">
+        <h4 class="card-title">{{title}}</h4>
+      </div>
+    </div>
+  </div>
+  <div class="card-block">
+    <table class="table table-striped table-bordered table-list">
+      <thead>
+        <tr>
+          <th style="text-align: center"><em class="fa fa-cog"></em></th>
+          <th>Channel</th>
+          <th>ID</th>
+          <th>Last Run</th>
+          <th>Duration</th>
+          <th style="width: 25%">Status</th>
+          <th>Errors</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for channel in channels %}
+        <tr>
+          <td align="center">
+            <button class="control-btn btn btn-{{channel.restart_color}} btn-sm" data-toggle="modal" data-target="#restart-{{channel.id}}-modal"><em class="fa fa-refresh"></em></button>
+            <button class="control-btn btn btn-{{channel.stop_color}} btn-sm" data-toggle="modal" data-target="#stop-{{channel.id}}-modal"><em class="fa fa-stop"></em></button>
+          </td>
+          <td><a href="/runs/{{channel.last_run_id}}/">{{channel.channel}} →</a></td>
+          <td><button class="channel-id-btn btn btn-sm btn-success" data-toggle="tooltip" data-placement="right" title="Copied!" data-trigger="click" data-clipboard-text="{{channel.id}}">Copy</button></td>
+          <td>{{channel.last_run}}</td>
+          <td>{{channel.duration}}</td>
+          <td>
+            <div class="progress">
+              <div class="progress-bar progress-bar-striped progress-bar-animated bg-{{channel.run_status}}" role="progressbar" aria-valuenow="{{channel.status_pct}}" aria-valuemin="0" aria-valuemax="100" style="color: #757575; width: {{channel.status_pct}}%;">{{channel.status}}</div>
+            </div>
+          </td>
+          <td><a class="btn btn-sm btn-{{channel.run_status}}" href="/errors/{{channel.last_run_id}}/">Logs  →</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+<br>
+{% endfor %}
+{% endblock %}
+
+{% block modal %}
+{{ block.super }}
+{% for title, channels in channels.items %}
+{% if title == "Active Channels" %}
+{% for channel in channels %}
+<div class="modal fade" id="stop-{{channel.id}}-modal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Stop Sushi Chef</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>Channel Name: {{channel.channel}}</p>
+        <p>Chef Name: <a href="{{channel.chef_link}}">{{channel.chef_name}}</a></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary">Confirm</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal fade" id="restart-{{channel.id}}-modal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Restart Sushi Chef</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>Channel Name: {{channel.channel}}</p>
+        <p>Chef Name: <a href="{{channel.chef_link}}">{{channel.chef_name}}</a></p>
+        <p>Chef extra options: <code>{{channel.cl_flags}}</code></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" onclick="start_channel_handler('{{ channel.id }}')">Confirm</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endfor %}
+{% endif %}
+{% endfor %}
+{% endblock %}
+
+{% block javascript %}
+{{ block.super }}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.6.1/clipboard.min.js"></script>
+<script src="{% static 'js/dashboard.js' %}"></script>
+{% endblock %}

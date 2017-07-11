@@ -1,0 +1,132 @@
+.save-icon {
+  color: #F2AD00;
+}
+
+body {
+  font-family: 'Didact Gothic', sans-serif;
+}
+
+#search-icon {
+  margin-left: 10px;
+  font-size: 11px;
+}
+
+#search-input {
+  height: 30px;
+  font-family: inherit;
+  min-width: 200px;
+}
+
+.card-title {
+  margin-bottom: 0;
+}
+
+.alert-debug {
+  color: black;
+  background-color: white;
+  border-color: #d6e9c6;
+}
+
+.alert-error {
+  color: #b94a48;
+  background-color: #f2dede;
+  border-color: #eed3d7;
+}
+
+/* This is a fix for the bootstrap4 alpha release */
+@media (max-width: 47.9em) {
+  .navbar-nav .nav-item {
+    float: none;
+    width: 100%;
+    display: inline-block;
+  }
+
+  .navbar-nav .nav-item + .nav-item {
+    margin-left: 0;
+  }
+
+  .nav.navbar-nav.pull-xs-right {
+    float: none !important;
+  }
+}
+
+.table > tbody > tr > td {
+    vertical-align: middle !important;
+}
+.table > tbody > tr > td > .progress {
+    margin-bottom: 0px !important;
+}
+
+
+/* Display django-debug-toolbar.
+   See https://github.com/django-debug-toolbar/django-debug-toolbar/issues/742
+   and https://github.com/pydanny/cookiecutter-django/issues/317
+*/
+[hidden][style="display: block;"] {
+  display: block !important;
+}
+
+.footer-basic {
+  padding:40px 0;
+  background-color:#ffffff;
+  color:#4b4c4d;
+  text-align: center;
+}
+
+.footer-basic a {
+  color:inherit;
+  text-decoration:none;
+  opacity:0.8;
+}
+
+.footer-basic .copyright {
+  margin-top:15px;
+  font-size:13px;
+  color:#aaa;
+  margin-bottom:0;
+}
+
+.control-btn {
+  color: black;
+}
+
+.tt-input,
+.tt-hint {
+    width: 396px;
+    height: 30px;
+    padding: 8px 12px;
+    line-height: 30px;
+    outline: none;
+}
+
+.tt-hint {
+    color: #999;
+    margin-top: 1px;
+    font-family: inherit;
+}
+
+.tt-menu {
+    width: 350px;
+    margin-top: 12px;
+    padding: 8px 0;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+}
+
+.tt-suggestion {
+    padding: 3px 20px;
+    font-size: 18px;
+    line-height: 24px;
+}
+
+.tt-suggestion.tt-cursor {
+    color: #fff;
+    background-color: #0097cf;
+
+}
+
+.tt-suggestion p {
+    margin: 0;
+}
