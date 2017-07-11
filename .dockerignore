@@ -1,0 +1,16 @@
+credentials
+staticfiles
+local_media
+.*
+!.coveragerc
+!.env
+!.pylintrc
+*.egg-info
+.coverage
+.git
+.tox
+build
+coverage-html
+docs/_site
+venv
+.tox
