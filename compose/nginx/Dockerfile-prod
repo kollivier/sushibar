@@ -1,0 +1,10 @@
+FROM nginx:latest
+
+# Not necessary to customize ... can leave default
+# ADD nginx.conf /etc/nginx/nginx.conf
+
+RUN chmod go+rw /static \
+    && chmod go+rw /media
+
+# Not necessary since using custom compose/nginx-gen/nginx.tmpl
+# RUN apt-get update; apt-get install -y dnsutils

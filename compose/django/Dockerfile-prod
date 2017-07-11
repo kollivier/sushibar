@@ -1,0 +1,37 @@
+FROM python:3.5
+
+ENV PYTHONUNBUFFERED 1
+
+# Requirements have to be pulled and installed here, otherwise caching won't work
+COPY ./requirements /requirements
+RUN pip install --no-cache-dir -r /requirements/production.txt \
+    && rm -rf /requirements
+
+COPY ./compose/django/entrypoint.sh /entrypoint.sh
+COPY ./compose/django/start_gunicorn.sh /start_gunicorn.sh
+COPY ./compose/django/start_daphne.sh /start_daphne.sh
+COPY ./compose/django/start_worker.sh /start_worker.sh
+
+RUN chmod +x /entrypoint.sh \
+    && chmod +x /start_gunicorn.sh \
+    && chmod +x /start_daphne.sh \
+    && chmod +x /start_worker.sh
+
+
+COPY . /app
+
+# Note July 3: user django disabled bcs need to write to root-owned /static /media
+# RUN groupadd -r django \
+#     && useradd -r -g django django
+#
+#    && chown django /entrypoint.sh \
+#    && chown django /start_gunicorn.sh \
+#    && chown django /start_daphne.sh \
+#    && chown django /start_worker.sh \
+#
+# RUN chown -R django /app
+# USER django
+
+WORKDIR /app
+
+ENTRYPOINT ["/entrypoint.sh"]

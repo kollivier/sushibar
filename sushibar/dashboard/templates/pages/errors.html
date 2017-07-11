@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+{% block css %}
+{{ block.super }}
+<link href="{% static 'css/error_page.css' %}" rel="stylesheet">
+{% endblock %}
+{% block content %}
+<div id="accordion" role="tablist" aria-multiselectable="true">
+  <div class="card">
+    <div class="card-header" role="tab" id="headingOne">
+      <h5 class="mb-0">
+        <a class="text-danger" data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+          Critical Errors
+        </a>
+      </h5>
+    </div>
+
+    <div id="collapseOne" class="collapse" role="tabpanel" aria-labelledby="headingOne">
+      <div class="card-block">
+        <pre class="pre-scrollable">
+          {% for logentry in critical %}
+            <span>{{logentry}}</span>
+          {% endfor %}
+        </pre>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header" role="tab" id="headingTwo">
+      <h5 class="mb-0">
+        <a class="collapsed text-warning" data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+          Non-Critical Errors
+        </a>
+      </h5>
+    </div>
+    <div id="collapseTwo" class="collapse" role="tabpanel" aria-labelledby="headingTwo">
+      <div class="card-block">
+        <pre class="pre-scrollable">
+          {% for logentry in error %}
+            <span>{{logentry}}</span>
+          {% endfor %}
+        </pre>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header" role="tab" id="headingThree">
+      <h5 class="mb-0">
+        <a class="collapsed" data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded="true" aria-controls="collapseThree">
+          Logs
+        </a>
+      </h5>
+    </div>
+    <div id="collapseThree" class="collapse show" role="tabpanel" aria-labelledby="headingThree">
+      <div class="card-block">
+        <pre class="pre-scrollable">
+        {% for logentry in logs %}
+          <span>{{logentry}}</span>
+        {% endfor %}
+        </pre>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
