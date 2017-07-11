@@ -1,0 +1,37 @@
+{% extends "auth/base.html" %}
+
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block head_title %}{% trans "Sign In" %}{% endblock %}
+
+{% block inner %}
+
+<h1>{% trans "Sign In" %}</h1>
+
+
+
+
+<form class="login" method="POST" action="{% url 'sushibar_signin' %}">
+  {% csrf_token %}
+  {{ form|crispy }}
+  {% if redirect_field_value %}
+  <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+  {% endif %}
+  <button class="primaryAction btn btn-primary" type="submit">{% trans "Sign In" %}</button>
+</form>
+
+<br>
+<br>
+<br>
+<h3>SushiBar Sign In Instructions</h3>
+<p>
+Make sure you use the same email as on the <a href="https://contentworkshop.learningequality.org/">Content Curation Server</a>.
+</p>
+
+<p>
+To obtain your CC Token, visit go to <a href="https://contentworkshop.learningequality.org/settings/tokens">Settings → Tokens</a>.
+</p>
+
+{% endblock %}
+
