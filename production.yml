@@ -1,14 +1,97 @@
 version: "2"
 
+
+
+volumes:
+  postgres_data: {}
+  postgres_backup: {}
+  static: {}
+  media: {}
+
+
+
 services:
+
+  django-wsgi:
+    container_name: django-wsgi
+    build:
+      context: .
+      dockerfile: ./compose/django/Dockerfile-prod
+    expose:
+      - "5000"
+    volumes:
+      - static:/static
+      - media:/media
+    depends_on:
+      - nginx
+      - postgres
+      - redis
+    command: /start_gunicorn.sh
+    env_file: ./credentials/production.env
+    environment:
+      - VIRTUAL_HOST=sushibar.learningequality.org
+      - VIRTUAL_NETWORK=sushibar_default
+      - VIRTUAL_PORT=5000
+      - LETSENCRYPT_HOST=sushibar.learningequality.org
+      - LETSENCRYPT_EMAIL=ivan@learningequality.org
+
+  django-asgi:
+    container_name: django-asgi
+    build:
+      context: .
+      dockerfile: ./compose/django/Dockerfile-prod
+    expose:
+      - "6000"
+    depends_on:
+      - redis
+    command: /start_daphne.sh
+    env_file: ./credentials/production.env
+    environment:
+      - VIRTUAL_HOST=sushibar.learningequality.org
+      - VIRTUAL_NETWORK=sushibar_default
+      - VIRTUAL_PORT=6000
+      - ASGI_UPSTREAM_NAME=sushibar_asgi_upstream
+      - VIRTUAL_PROTO=http
+      - HTTPS_METHOD=noredirect
+
+  asgi-worker:
+    container_name: asgi-worker
+    build:
+      context: .
+      dockerfile: ./compose/django/Dockerfile-prod
+    volumes:
+      - media:/media
+    depends_on:
+      - redis
+    command: /start_worker.sh
+    env_file: ./credentials/production.env
+
+
+  postgres:
+    container_name: sushibar-postgres
+    build:
+      context: ./compose/postgres
+      dockerfile: Dockerfile-prod
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - postgres_backup:/backups
+    env_file: ./credentials/production.env
+
+  redis:
+    image: redis:3.0
+
   nginx:
     restart: always
     image: nginx
     container_name: nginx
+    depends_on:
+      - django-asgi
     ports:
       - "80:80"
       - "443:443"
     volumes:
+      - static:/static
+      - media:/media
       - "/etc/nginx/conf.d"
       - "/etc/nginx/vhost.d"
       - "/usr/share/nginx/html"
@@ -16,7 +99,7 @@ services:
 
   nginx-gen:
     restart: always
-    build: ./samples/nginx-gen
+    build: ./compose/nginx-gen
     container_name: nginx-gen
     depends_on:
       - nginx
@@ -26,10 +109,10 @@ services:
       - nginx
     entrypoint: /usr/local/bin/docker-gen -notify-sighup nginx -watch -wait 5s:30s /etc/docker-gen/templates/nginx.tmpl /etc/nginx/conf.d/default.conf
 
-  letsencrypt-nginx-proxy-companion:
+  letsencrypt-companion:
     restart: always
     image: jrcs/letsencrypt-nginx-proxy-companion
-    container_name: letsencrypt-nginx-proxy-companion
+    container_name: letsencrypt-companion
     depends_on:
       - nginx
       - nginx-gen
@@ -41,27 +124,4 @@ services:
     environment:
       - NGINX_DOCKER_GEN_CONTAINER=nginx-gen
 
-  sample-api:
-    restart: always
-    image: sample-api
-    build: ./samples/api
-    container_name: sample-api
-    environment:
-      - VIRTUAL_HOST=sushibarapi.ezoer.org
-      - VIRTUAL_NETWORK=sushibar_default
-      - VIRTUAL_PORT=3000
-      - LETSENCRYPT_HOST=sushibarapi.ezoer.org
-      - LETSENCRYPT_EMAIL=ivan@learningequality.org
-
-  sample-website:
-    restart: always
-    image: sample-website
-    build: ./samples/website
-    container_name: sample-website
-    environment:
-      - VIRTUAL_HOST=sushibar.ezoer.org
-      - VIRTUAL_NETWORK=sushibar_default
-      - VIRTUAL_PORT=80
-      - LETSENCRYPT_HOST=sushibar.ezoer.org
-      - LETSENCRYPT_EMAIL=ivan@learningequality.org
 
