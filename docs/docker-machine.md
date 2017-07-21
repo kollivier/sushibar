@@ -1,12 +1,108 @@
 Deployment using docker-machine
 ===============================
 
+The `sushibar` docker deployment was originally tested on `AWS`, but it works
+essentially the same way on `GCP` (the new setup). The long term plan is to
+deploy to a kubernetes server using `bake`.
+
+
+
+Provisioning on GCP
+===================
+
+We'll use the command line tool `docker-machine` for the following two tasks:
+  - Provision an instance (a virtual machine rented from GCP) which will
+    serve as the docker host
+  - Set appropriate environment variables to make `docker` command line tools
+    talk to the remote docker host instead of localhost
+
+
+STEP0: Login
+
+    gcloud auth application-default login
+
+
+STEP1: Create a static IP for the docker host:
+
+    gcloud compute addresses create gcpsushibarhost-address --region us-east1
+
+
+STEP2: Use `docker-machine`'s [GCE driver](https://docs.docker.com/machine/drivers/gce/)
+to setup a docker host called `gcpsushibarhost` in the Google cloud.
+
+    docker-machine create --driver google \
+       --google-project kolibri-demo-servers \
+       --google-zone us-east1-d \
+       --google-machine-type n1-standard-1 \
+       --google-machine-image debian-cloud/global/images/debian-9-stretch-v20170717 \
+       --google-disk-size 100 \
+       --google-username admin \
+       --google-tags http-server,https-server \
+       --google-address gcpsushibarhost-address \
+       gcpsushibarhost
+
+
+Assuming everything goes to plan, a new instance should be running, with docker
+installed on it and the docker daemon listening on port `2375`.
+
+STEP 3: You need to manually edit the inbound firewall rules to allow access to this port.
+
+
+The security of the connection to the remote docker daemon is established by the
+TLS certificates in `~/.docker/machine/machines/gcpsushibarhost/`.
+The settings required to configure docker to build and deploy containers on the
+remote host `gcpsushibarhost` can be displayed using the command:
+
+    docker-machine env gcpsushibarhost
+
+
+
+
+Using docker on the remote docker host
+======================================
+
+In order to configure docker to build and run containers on `gcpsushibarhost`, we must
+inject the appropriate env variables which will tell the local docker command
+where it should work:
+
+    eval $(docker-machine env gcpsushibarhost)
+
+After running this, all docker commands will be send to the remote `gcpsushibarhost`.
+
+
+Start/update/deploy
+-------------------
+See [docker-compose.md](./docker-compose.md).
+
+
+
+Shutting down
+-------------
+
+To stop the running container:
+
+    eval $(docker-machine env gcpsushibarhost)
+    docker ps                     # to find the running container IDs
+    docker stop <container_id>
+
+To destroy the machine:
+
+    docker-machine rm gcpsushibarhost
+
+
+
+
+
+
+
+Provisioning on AWS
+===================
+
 We'll use the command line tool `docker-machine` for the following two tasks:
   - Provision an `ec2` instance (a virtual machine rented from AWS) which will
     serve as the docker host
   - Set appropriate environment variables to make `docker` command line tools
     talk to the remote docker host instead of localhost
-
 
 
 AWS credentials
@@ -33,12 +129,10 @@ and all variables can be loaded into the current shell environment using
     source credentials/aws-keys.env
 
 
-
-
-
-
 Creating the docker host on AWS
 -------------------------------
+Deprecated: see GCP instructions above.
+
 Use `docker-machine`'s [AWS driver](https://docs.docker.com/machine/drivers/aws/)
 to setup a docker host called `sushibarhost` in the AWS cloud
 
@@ -80,89 +174,4 @@ remote host `sushibarhost` can be displayed using the command:
       docker-machine env sushibarhost
 
 
-
-### Using docker on the remote docker host
-
-In order to configure docker to build and run containers on `sushibarhost`, we must
-inject the appropriate env variables which will tell the local docker command
-where it should work:
-
-    eval $(docker-machine env sushibarhost)
-
-After running this command we must build the docker image on `awshost`:
-
-    docker build webapp/  --tag screenshot-docker-img
-
-Before we run the container, make sure the env contains the S3 credentials by
-running `source credentials/aws-keys.env` if needed.
-
-To start the container from the image tagged `screenshot-docker-img` on `awshost`,
-run the following command:
-
-    docker run \
-      -p 5000:5000 \
-      -e S3_AWS_ACCESS_KEY_ID=$S3_AWS_ACCESS_KEY_ID \
-      -e S3_AWS_SECRET_ACCESS_KEY=$S3_AWS_SECRET_ACCESS_KEY \
-      -e S3_BUCKET_NAME="web-screenshot-service" \
-      -e S3_BUCKET_BASE_URL="https://s3.ca-central-1.amazonaws.com/web-screenshot-service/" \
-      -d screenshot-docker-img
-
-Make sure `S3_BUCKET_NAME` and `S3_BUCKET_BASE_URL` are set appropriately.
-
-This will run the entry CMD `python3 screenshotservice.py` to start the service.
-
-
-
-### Open port 5000
-
-From the ec2 web interface, choose "NETWORK & SECURITY" from the side menu, then
-"Security Groups", and click on the security group called "docker-machine".
-
-![docs/aws_steps/open_port_5000/step1.png](docs/aws_steps/open_port_5000/step1.png)
-
-In the bottom panel, select "Inbound" then "Edit" and add a custom TCP rule for
-port 5000 coming from anywhere (`0.0.0.0/0`).
-
-![docs/aws_steps/open_port_5000/step2.png](docs/aws_steps/open_port_5000/step2.png)
-
-
-
-### Find ec2 host's public IP and test API
-
-    docker-machine ip sushibarhost
-    xx.yy.zz.ww
-
-Add DNS `sushibar.learningequality.org --> xx.yy.zz.ww`.
-
-
-Deploy new version
-------------------
-
-    source credentials/aws-keys.env
-    eval $(docker-machine env sushibarhost)
-    docker ps                      # to find the container ID
-    docker stop <container_id>
-    docker build webapp/  --tag screenshot-docker-img
-    docker run \
-      -p 5000:5000 \
-      -e S3_AWS_ACCESS_KEY_ID=$S3_AWS_ACCESS_KEY_ID \
-      -e S3_AWS_SECRET_ACCESS_KEY=$S3_AWS_SECRET_ACCESS_KEY \
-      -e S3_BUCKET_NAME="web-screenshot-service" \
-      -e S3_BUCKET_BASE_URL="https://s3.ca-central-1.amazonaws.com/web-screenshot-service/" \
-      -d screenshot-docker-img
-
-
-Shutting down
--------------
-
-To stop the container:
-
-    eval $(docker-machine env sushibarhost)
-    docker ps                     # to find the container ID
-    docker stop <container_id>
-
-To destroy the machine:
-
-    source credentials/aws-keys.env
-    docker-machine rm sushibarhost
 
