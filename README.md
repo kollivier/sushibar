@@ -84,8 +84,8 @@ Production setup
 Before we set this up as a kubernetes, we can test all the dockerization using
 the tools `docker-machine` and `docker-compose`.
 
-    # 1. setup env vars that proxy local docker commands to the docker host `sushibarhost`
-    eval $(docker-machine env sushibarhost)
+    # 1. setup env vars that proxy local docker commands to the docker host `gcpsushibarhost`
+    eval $(docker-machine env gcpsushibarhost)
 
     # 2. create network
     docker network create nginx-proxy
