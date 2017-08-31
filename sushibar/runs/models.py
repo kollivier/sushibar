@@ -35,6 +35,14 @@ class ContentChannel(models.Model):
 
     followers = models.ManyToManyField(BarUser, related_name="saved_channels")
 
+    def get_channel_status(self):
+        try:
+            last_run = channel.runs.latest("created_at")
+            return last_run.events.latest("finished")
+        except (ContentChannelRun.DoesNotExist, ChannelRunStage.DoesNotExist):
+            return None
+
+
     def __str__(self):
         return '<Channel ' + self.channel_id.hex[:8] + '...>'
 
