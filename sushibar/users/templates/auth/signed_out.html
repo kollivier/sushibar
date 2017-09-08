@@ -1,14 +1,20 @@
 {% extends "auth/base.html" %}
-
-{% load i18n %}
+{% load staticfiles i18n %}
 
 {% block head_title %}{% trans "Signed out" %}{% endblock %}
 
 {% block inner %}
 <br>
 <br>
-<h1>{% trans "You're signed out." %}</h1>
 
+<div class="row user-page">
+	<div class="col-3"></div>
+	<div class="col-6 text-center">
+		<h1>{% trans "You are now signed out" %}</h1>
+		<a class="btn" id="go-to-login" href="{% url 'sushibar_signin' %}">SIGN IN</a>
+	</div>
+	<div class="col-3"></div>
+</div>
 
 {% endblock %}
 
