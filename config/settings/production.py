@@ -206,5 +206,8 @@ LOGGING = {
 # Production media in docker volume `media`
 MEDIA_ROOT = '/media'
 
+
 # Sushibar specific settings
-DEFAULT_CONTENT_CURATION_SERVER = 'https://contentworkshop.learningequality.org'
+# ------------------------------------------------------------------------------
+
+DEFAULT_STUDIO_SERVER = get_env('DEFAULT_STUDIO_SERVER', 'https://contentworkshop.learningequality.org')

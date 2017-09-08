@@ -27,7 +27,7 @@ class ContentChannel(models.Model):
     # Authorization-related fields for channel (not used in MMVP)
     registered_by_user = models.EmailField(max_length=200, blank=True, null=True)
     registered_by_user_token = models.CharField(max_length=200, blank=True, null=True)
-    default_content_server = models.URLField(max_length=300, default=settings.DEFAULT_CONTENT_CURATION_SERVER)
+    default_content_server = models.URLField(max_length=300, default=settings.DEFAULT_STUDIO_SERVER)
 
     # for temporal ordering
     created_at = models.DateTimeField(auto_now_add=True)
@@ -87,7 +87,7 @@ class ContentChannelRun(models.Model):
     # Authorization fields
     started_by_user = models.EmailField(max_length=200, blank=True, null=True)
     started_by_user_token = models.CharField(max_length=200, blank=True, null=True)
-    content_server = models.URLField(max_length=300, default=settings.DEFAULT_CONTENT_CURATION_SERVER)
+    content_server = models.URLField(max_length=300, default=settings.DEFAULT_STUDIO_SERVER)
 
     # for temporal ordering
     created_at = models.DateTimeField(auto_now_add=True)
