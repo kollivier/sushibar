@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <link rel="shortcut icon" href="{% static 'images/sushi.png' %}">
   <title>{% block title %}Sushi Bar{% endblock title %}</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="">
@@ -22,39 +23,32 @@
       <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 
       <!-- This file stores project-specific CSS -->
-      <link href="{% static 'css/project.css' %}" rel="stylesheet">
-      <link href="{% static 'css/search-nav.css' %}" rel="stylesheet">
+      <link rel="stylesheet/less" type="text/css" href="{% static 'less/base.less' %}" />
+      <link rel="stylesheet/less" type="text/css" href="{% static 'less/users.less' %}" />
       <link href="https://fonts.googleapis.com/css?family=Didact+Gothic&amp;subset=latin-ext" rel="stylesheet">
-
       {% endblock %}
 
     </head>
 
     <body>
 
-      <div class="container">
+      <div class="container" id="sushi-wrapper">
         <nav class="navbar navbar-toggleable-md navbar-default navigation-clean-search">
           <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbar-items" aria-controls="navbar-items" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
+            <i class="fa fa-bars"></i>
           </button>
-          <a class="navbar-brand navbar-link" href="{% url 'home' %}">Sushi Bar</a>
+          <a class="navbar-brand navbar-link" href="{% url 'home' %}"><img src="{% static 'images/sushi.png' %}" id="sushi-icon">Sushi Bar</a>
           <div class="collapse navbar-collapse" id="navbar-items">
-            <form id="search-form" class="form-inline" target="_self">
+            <form id="search-form" class="form-inline">
               <div class="input-group mb-2 mr-sm-2 mb-sm-0">
+                <input type="text" class="form-control typeahead" placeholder="Search..." aria-label="Search" aria-describedby="search-icon" id="search-input">
                 <span class="input-group-addon" id="search-icon"><i class="fa fa-search"></i></span>
-                <input class="form-control typeahead" placeholder="Search" type="text" aria-described-by="search-icon" id="search-input">
               </div>
             </form>
             <ul class="nav navbar-nav ml-auto w-100 justify-content-end">
-            <li role="presentation" class="nav-item">
-              <a class="nav-link" href="{% url 'home' %}">Dashboard </a>
-            </li>
               {% if request.user.is_authenticated %}
               <li class="nav-item dropdown"><a class="nav-link dropdown-toggle" data-toggle="dropdown" aria-expanded="true" href="#">{{ request.user.username }}<span class="caret"></span></a>
                 <ul class="dropdown-menu" role="menu">
-                  <li role="presentation">
-                    <a class="nav-link" href="/saved/">Saved Chefs</a>
-                  </li>
                   <li role="presentation">
                     <a class="nav-link" href="{% url 'users:detail' request.user.username  %}">{% trans "My Profile" %}</a>
                   </li>
@@ -72,25 +66,24 @@
             </ul>
           </div>
         </nav>
+          {% if messages %}
+          {% for message in messages %}
+          <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">{{ message }}</div>
+          {% endfor %}
+          {% endif %}
 
-        {% if messages %}
-        {% for message in messages %}
-        <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">{{ message }}</div>
-        {% endfor %}
-        {% endif %}
-
-        {% block content %}
-        <p>Use this document as a way to quick start any new project.</p>
-        {% endblock content %}
-      </div>
-      <div class="footer-basic">
-        <hr>
-        <footer>
-            <a href="http://contentworkshop.learningequality.org">Content Workshop&nbsp;·</a>
-            <a href="https://github.com/learningequality/ricecooker">&nbsp;Ricecooker&nbsp;·</a>
-            <a href="https://github.com/learningequality/sushibar">&nbsp;Github</a>
-            <p class="copyright">Learning Equality © 2017</p>
-        </footer>
+          {% block content %}
+          <p>Use this document as a way to quick start any new project.</p>
+          {% endblock content %}
+        <div class="footer-basic">
+          <hr>
+          <footer>
+              <a href="http://contentworkshop.learningequality.org" target="_blank">Kolibri Studio&nbsp;·</a>
+              <a href="https://github.com/learningequality/ricecooker" target="_blank">&nbsp;Ricecooker&nbsp;·</a>
+              <a href="https://github.com/learningequality/sushibar" target="_blank">&nbsp;Github</a>
+              <p class="copyright"><a href="https://learningequality.org" target="_blank">Learning Equality © 2017</a></p>
+          </footer>
+        </div>
       </div>
 
       {% block modal %}{% endblock modal %}
@@ -113,6 +106,7 @@
     <!-- place project specific Javascript in this file -->
 
     <script src="{% static 'js/project.js' %}"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/less.js/2.7.2/less.min.js"></script>
     {% endblock javascript %}
   </body>
   </html>
