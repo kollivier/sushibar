@@ -1,37 +1,34 @@
 {% extends "auth/base.html" %}
-
-{% load i18n %}
+{% load staticfiles i18n %}
 {% load crispy_forms_tags %}
 
 {% block head_title %}{% trans "Sign In" %}{% endblock %}
 
 {% block inner %}
 
-<h1>{% trans "Sign In" %}</h1>
-
-
-
-
-<form class="login" method="POST" action="{% url 'sushibar_signin' %}">
-  {% csrf_token %}
-  {{ form|crispy }}
-  {% if redirect_field_value %}
-  <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
-  {% endif %}
-  <button class="primaryAction btn btn-primary" type="submit">{% trans "Sign In" %}</button>
-</form>
-
-<br>
-<br>
-<br>
-<h3>SushiBar Sign In Instructions</h3>
-<p>
-Make sure you use the same email as on the <a href="https://contentworkshop.learningequality.org/">Content Curation Server</a>.
-</p>
-
-<p>
-To obtain your CC Token, visit go to <a href="https://contentworkshop.learningequality.org/settings/tokens">Settings → Tokens</a>.
-</p>
+<div class="row user-page">
+	<div class="col-1"></div>
+	<div class="col-5" id="form-wrapper">
+		<h1 class="text-center">{% trans "SUSHI BAR" %}</h1>
+		<br>
+		<form class="login" method="POST" action="{% url 'sushibar_signin' %}">
+			{% csrf_token %}
+			{{ form|crispy }}
+			{% if redirect_field_value %}
+			<input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+			{% endif %}
+			<button id="sign-in-button" class="btn btn-green" type="submit">{% trans "SIGN IN" %}</button>
+		</form>
+	</div>
+	<div class="col-1"></div>
+	<div class="col-4 text-center" id="instructions">
+		<h3 class="text-center"><b>INSTRUCTIONS</b></h3>
+		<br>
+		<p>Make sure you use the same email as <a href="https://contentworkshop.learningequality.org/">Kolibri Studio</a>.</p>
+		<p>To obtain your Kolibri Studio token, go to <a href="https://contentworkshop.learningequality.org/settings/tokens">Settings → Tokens</a>.</p>
+	</div>
+	<div class="col-1"></div>
+</div>
 
 {% endblock %}
 

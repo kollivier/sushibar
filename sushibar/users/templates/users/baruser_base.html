@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ object.username }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid user-page">
+  <div class="row">
+    <div class="col-sm-4">
+      <img class="chef-profile-img" src="{% static 'images/chef.png' %}"/>
+    </div>
+    <div class="col-sm-6">
+      <h2 class="username">{% if object.first_name %}{{request.user.first_name}} {{object.last_name}}{% else %}{{ object.username }}{% endif %}</h2>
+      <p class="user-email"><a href="mailto:{{user.email}}" class="link">{{ user.email }}</a></p>
+      <hr/>
+      <h6 class="sushi-bar-name-label">Sushi Bar Name</h6>
+      {% block barname %}
+        <p class="sushi-bar-name">
+          {% if object.name %}{{ object.name }}{% else %}No name provided{% endif %}
+          {% if object == request.user %}<a class="bar-name-link" href="{% url 'users:update' %}"><i class="fa fa-pencil edit-icon icon"></i></a>{% endif %}
+        </p>
+      {% endblock barname %}
+      {% block userchannels %}{% endblock userchannels %}
+
+    </div>
+    <div class="col-sm-2"></div>
+  </div>
+</div>
+{% endblock content %}
+

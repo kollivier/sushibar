@@ -1,0 +1,85 @@
+@import "base.less";
+
+.user-page{
+	padding: 30px;
+	padding-top: 10vh;
+	min-height: 70vh;
+	#instructions {
+		background-color: @tan;
+		padding: 50px;
+		padding-top: 10vh;
+		font-size: 13pt;
+	}
+	#form-wrapper {
+		padding: 0px;
+		padding-top: 5vh;
+		h1 {
+			color: white;
+		    background-color: @darkgray;
+		    padding: 10px;
+		}
+		input { border-radius: 0px; }
+		.asteriskField { color: @darkred; }
+		ul { list-style-type: none; }
+		#sign-in-button {
+    		font-size: 15pt;
+    		margin-top: 20px;
+    		width: 100%;
+		}
+	}
+	#go-to-login {
+		margin-top: 30px;
+		padding: 5px 50px;
+		font-size: 14pt;
+		.btn-green;
+	}
+
+	.chef-profile-img {
+		width: 100%;
+	    height: auto;
+	    max-width: 300px;
+	    background-color: @gray-000;
+	}
+	.username { font-size: 30pt; }
+	.user-email {
+		font-size: 16pt;
+		font-style: italic;
+	}
+	.link {
+		color: @gray-400;
+		&:hover { color: @blue; }
+		&:hover, &:focus, &:active { text-decoration: none; }
+	}
+	.sushi-bar-name-label { margin-top: 30px; }
+	.sushi-bar-name { font-size: 18pt; }
+	.icon {
+		color: @gray-400;
+		padding-left: 15px;
+		&:hover { color: @blue; }
+	}
+	.user-form {
+		input[type='text'] {
+			border-color: @gray-200;
+		    padding: 3px 5px;
+		    font-size: 14pt;
+		    vertical-align: middle;
+		    width: 60%;
+	    	max-width: 350px;
+		}
+	}
+	.user-channel-list {
+		font-size: 15pt;
+	}
+}
+
+@media (max-width:767px) {
+	.user-page {
+		text-align: center;
+		.username { margin-top: 20px; }
+		.username, .user-email {
+			font-size: 16pt !important;
+			.truncate;
+		}
+	}
+}
+

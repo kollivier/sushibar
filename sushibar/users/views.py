@@ -4,6 +4,8 @@ from django.views.generic import DetailView, ListView, RedirectView, UpdateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 
 from .models import BarUser
+from sushibar.runs.models import ContentChannel
+from sushibar.ccserverlib.services import get_user_channels
 
 
 class UserDetailView(LoginRequiredMixin, DetailView):
@@ -14,8 +16,14 @@ class UserDetailView(LoginRequiredMixin, DetailView):
 
     def get_context_data(self, *arg, **kwargs):
         context = super(UserDetailView, self).get_context_data(*arg, **kwargs)
-        context['user_info_dict'] = self.get_object().__dict__
-        print(context)
+        status, channels = get_user_channels(self.get_object())
+        context['channels'] = []
+        if status == 'success':
+            channel_ids = [cid.hex for cid in ContentChannel.objects.values_list("channel_id", flat=True)]
+
+            for channel in channels:
+                if channel.get('id') in channel_ids:
+                    context['channels'].append(channel)
         return context
 
 
