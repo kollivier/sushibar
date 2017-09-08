@@ -3,6 +3,51 @@ import json
 from django.conf import settings
 import requests
 
+BASE_URL = "http://127.0.0.1:8000" # settings.DEFAULT_CONTENT_CURATION_SERVER
+
+PUBLISH_CHANNEL_URL = "%s/api/internal/publish_channel" % BASE_URL
+GET_CHANNELS_URL = "%s/get_user_channels" % BASE_URL
+CHECK_USER_URL = "%s/api/internal/check_user_is_editor" % BASE_URL
+ACTIVATE_CHANNEL_URL = "%s/api/internal/activate_channel_internal" % BASE_URL
+GET_CHANNEL_STATUS_URL = "%s/api/internal/get_channel_status" % BASE_URL
+GET_CHANNEL_STATUS_BULK_URL = "%s/api/internal/get_channel_status_bulk" % BASE_URL
+FINISH_CHANNEL_URL = "%s/api/internal/finish_channel" % BASE_URL
+
+def post_request(baruser, auth_url, data=None):
+    if not baruser.is_authenticated or not baruser.cctoken:
+        return ('failure', 'User does not have a Kolibri Studio token')
+    try:
+        request = requests.post(
+                auth_url,
+                data=json.dumps(data),
+                headers={'Authorization': 'Token %s' % baruser.cctoken,
+                         'Content-Type': 'application/json'})
+        if request.status_code == 200:
+            return ('success', request.json())
+        else:
+            return ('failure', 'Request failed: %s' % request.reason)
+
+    except requests.ConnectionError: # fallback when ccserver can't be reached
+        return ('failure', 'Connection error: could not reach the ccserver.')
+
+
+def get_request(baruser, auth_url, data=None):
+    if not baruser.is_authenticated or not baruser.cctoken:
+        return ('failure', 'User does not have a Kolibri Studio token')
+
+    try:
+        request = requests.get(
+                auth_url,
+                data=json.dumps(data or {}),
+                headers={'Authorization': 'Token %s' % baruser.cctoken,
+                         'Content-Type': 'application/json'})
+        if request.status_code == 200:
+            return ('success', request.json())
+        else:
+            return ('failure', 'Request failed: %s' % request.reason)
+
+    except requests.ConnectionError: # fallback when ccserver can't be reached
+        return ('failure', 'Connection error: could not reach the ccserver.')
 
 
 def ccserver_authenticate_user(cctoken, ccemail=None):
@@ -15,12 +60,12 @@ def ccserver_authenticate_user(cctoken, ccemail=None):
     log user in based on token, throws 400 error if user token is invalid
         POST
         Header:
-         { "Authorization": "Token {token}”}
+         { "Authorization": "Token {token}"}
         Body: ---
         Response:
         {
-            “success” : True,
-            “username” : “{username}”
+            "success" : True,
+            "username" : "{username}"
         }
 
     Returns tuple `(status, email_or_msg)`, where `status` is one of:
@@ -45,7 +90,7 @@ def ccserver_authenticate_user(cctoken, ccemail=None):
                 return ('failure', 'Token valid but CC Server has a different email file.')
 
             print('Successfully authenticated against CCServer')
-            return ('success', response_data['username'])
+            return ('success', response_data)
 
         else: # e.g. Error 403 Unauthorized
             return ('failure', 'Failed to authenticate against CCServer (`cctoken` not recognized)')
@@ -57,85 +102,54 @@ def ccserver_authenticate_user(cctoken, ccemail=None):
 
 
 
-
-
-def ccserver_publish_channel(baruser, channel):
-    pass
-
-# api/internal/publish_channel
-# Publish a channel (makes it exportable to Kolibri)
-# POST
-# Header: ---
-# Body:
-# { “channel_id”: “{uuid.hex}”}
-# {
-#     “channel”: “channel_id”,
-#     “success”: True
-# }
+def ccserver_publish_channel(baruser, channel_id):
+    """
+        returns {"success": True, "channel_id": str}
+    """
+    return post_request(baruser, PUBLISH_CHANNEL_URL, data={"channel_id": channel_id})
 
 
 def get_user_channels(baruser):
-    pass
-
-# Returns serialized json string of all channels associated with user (view-only and edit access)
-# GET
-# Header:
-#  { "Authorization": "Token {token}”}
-#
-# Body: ---
-# Serialized channel list
+    """
+        returns serialized channel list
+    """
+    return get_request(baruser, GET_CHANNELS_URL)
 
 
-def check_user_is_editor(baruser, channel):
-    pass
-# api/internal/check_user_is_editor
-# Returns whether or not user is authorized to edit the channel
-# POST
-# Header:
-#  { "Authorization": "Token {token}”}
-#
-# Body:
-#  { “channel_id” : “{uuid.hex}”}
-# {
-#     “success” : True
-# }
-#
+def check_user_is_editor(baruser, channel_id):
+    """
+        returns success if user is an editor
+    """
+    return post_request(baruser, CHECK_USER_URL, data={"channel_id": channel_id})
 
 
 
+def finish_channel(baruser, channel_id, stage=False):
+    """
+        Moves chef tree to either staging tree or main tree depending on user specification
+    """
+    return post_request(baruser, FINISH_CHANNEL_URL, data={"channel_id": channel_id})
 
 
-def finish_channel(baruser, channel, stage=False):
-    pass
-# api/internal/finish_channel
-# Moves chef tree to either staging tree or main tree depending on user specification
-# POST
-# Header:
-#  {"Authorization": "Token {token}”}
-#
-# Body:
-# {
-#     “channel_id” : “{uuid.hex}”,
-#     “stage” : {boolean}
-# }
-# {
-#     "success": True,
-#     "new_channel": “{uuid.hex}”
-# }
+def activate_channel(baruser, channel_id):
+    """
+        activates staged channels
+    """
+    return post_request(baruser, ACTIVATE_CHANNEL_URL, data={"channel_id": channel_id})
 
 
+def get_channel_status(baruser, channel_id):
+    """
+        returns channel's status
+    """
+    return post_request(baruser, GET_CHANNEL_STATUS_URL, data={"channel_id": channel_id})
 
-def activate_channel(baruser, channel):
-    pass
-# api/internal/activate_channel_internal
-# Deploys a staged channel to the live channel
-# POST
-# Header: ---
-# Body:
-# {“channel_id”: “{uuid.hex}”}
-# {
-#     “success”: True
-# }
+
+def get_channel_status_bulk(baruser, channel_ids):
+    """
+        returns channel's status
+    """
+    return post_request(baruser, GET_CHANNEL_STATUS_BULK_URL, data={"channel_ids": channel_ids})
 
 
 def get_staged_diff(baruser, channel):
@@ -145,15 +159,15 @@ def get_staged_diff(baruser, channel):
 # POST
 # Header: ---
 # Body:
-# {“channel_id”: “{uuid.hex}”}
+# {"channel_id": "{uuid.hex}"}
 # List of json changes. Example:
 # [
 #     {
-#         “field” : “File Size”,
-#         “live” :  100 (# bytes),
-#         “staged” : 200 (# bytes),
-#         “difference” : 100,
-#         “format_size” : True
+#         "field" : "File Size",
+#         "live" :  100 (# bytes),
+#         "staged" : 200 (# bytes),
+#         "difference" : 100,
+#         "format_size" : True
 #     }
 # ]
 
@@ -165,49 +179,49 @@ def compare_trees(baruser, channel):
 # Header: ---
 # Body:
 # {
-#     “channel_id”: “{uuid.hex}”,
-#     “staging”: boolean
+#     "channel_id": "{uuid.hex}",
+#     "staging": boolean
 # }
 #
 #
 # {
-#     “success” : True,
-#     “new” : {
-#         “{node_id}” : {
-#              “title” : “{str}”,
-#              “kind” : “{str}”,
-#              “file_size” : {number}
+#     "success" : True,
+#     "new" : {
+#         "{node_id}" : {
+#              "title" : "{str}",
+#              "kind" : "{str}",
+#              "file_size" : {number}
 #         },
 #     },
-#     “deleted” : {
-#         “{node_id}” : {
-#              “title” : “{str}”,
-#              “kind” : “{str}”,
-#              “file_size” : {number}
+#     "deleted" : {
+#         "{node_id}" : {
+#              "title" : "{str}",
+#              "kind" : "{str}",
+#              "file_size" : {number}
 #         }
 #     }
 # }
 #
 # Example:
 # {
-#     “success” : True,
-#     “new” : {
-#         “aaa” : {
-#              “title” : “Node Title”,
-#              “kind” : “topic”,
-#              “file_size” : 0
+#     "success" : True,
+#     "new" : {
+#         "aaa" : {
+#              "title" : "Node Title",
+#              "kind" : "topic",
+#              "file_size" : 0
 #         },
-#         “bbb” : {
-#              “title” : “Node Title 2”,
-#              “kind” : “audio”,
-#              “file_size” : 100
+#         "bbb" : {
+#              "title" : "Node Title 2",
+#              "kind" : "audio",
+#              "file_size" : 100
 #         }
 #     },
-#     “deleted” : {
-#         “ccc” : {
-#              “title” : “Node Title 3”,
-#              “kind” : “video”,
-#              “file_size” : 999999
+#     "deleted" : {
+#         "ccc" : {
+#              "title" : "Node Title 3",
+#              "kind" : "video",
+#              "file_size" : 999999
 #         }
 #     }
 # }
@@ -236,15 +250,15 @@ def ccserver_get_topic_tree(run):
 # Header: ---
 # Body:
 # {
-#     “channel_id”: “{uuid.hex}”,
-#     “tree”: “{str}”
+#     "channel_id": "{uuid.hex}",
+#     "tree": "{str}"
 # }
-# Tree can be “main”, “chef”, “staging”, or “previous”
+# Tree can be "main", "chef", "staging", or "previous"
 #
 #
 # {
-#     “success” : True,
-#     “tree” : [list of node dicts]
+#     "success" : True,
+#     "tree" : [list of node dicts]
 # }
 #
 # Example of tree:
