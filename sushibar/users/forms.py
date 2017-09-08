@@ -18,12 +18,12 @@ class SushiBarAuthenticationForm(AuthenticationForm):
     username/password logins.
     """
     username = forms.CharField(
-        label=_("Email (same as on content curation server)"),
+        label=_("Email (same as on Kolibri Studio)"),
         max_length=254,
         widget=forms.TextInput(attrs={'autofocus': True}),
     )
     password = forms.CharField(
-        label=_("CC Token or password"),
+        label=_("Password or Kolibri Studio Token"),
         strip=False,
         widget=forms.PasswordInput,
     )
