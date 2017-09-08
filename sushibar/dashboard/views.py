@@ -149,7 +149,7 @@ class DashboardView(TemplateView):
 
             channel_data = {
                 "channel": channel.name,
-                "channel_url": "%s/%s/edit" % (channel.default_content_server, channel.channel_id),
+                "channel_url": "%s/%s/edit" % (channel.default_content_server, channel.channel_id.hex),
                 "restart_color": 'success' if active else 'secondary',
                 "stop_color": "danger" if active else "secondary",
                 "active": active,
@@ -321,6 +321,6 @@ class RunView(TemplateView):
                 context[level] = []
                 continue
 
-        context['channel_url'] = "%s/%s/edit" % (run.channel.default_content_server, run.channel.channel_id)
+        context['channel_url'] = "%s/%s/edit" % (run.channel.default_content_server, run.channel.channel_id.hex)
 
         return context

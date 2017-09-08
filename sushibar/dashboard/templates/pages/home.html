@@ -67,7 +67,7 @@
             {% for action in channel.ccstatus.actions %}
               <a class="action-link dropdown-item" href="{{action.url}}" target="_blank">{{action.action_text}}</a>
             {% endfor %}
-            <a class="action-link dropdown-item" href="{{channel_url}}" target="_blank">Open Channel</a>
+            <a class="action-link dropdown-item" href="{{channel.channel_url}}" target="_blank">Open Channel</a>
             {% endif %}
           </div>
         </div>
