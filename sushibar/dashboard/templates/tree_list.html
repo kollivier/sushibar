@@ -1,9 +1,9 @@
-<li><a><i class="fa {{node.icon}}"></i> {{node.title}} 
+<li class="{%if node.children %}topic{% else %}file{% endif %}"><a><i class="icon fa {{node.icon}}"></i> <div class="title truncate" title="{{node.title}}">{{node.title}}</div>
 {% if node.file_size %}
 ({{node.file_size}})
 {% endif %}</a>
 {%if node.children %}
-  <ul style="display: none">
+  <ul style="display: none" class="content-tree">
   {%for child in node.children %}
     {%with node=child template_name="tree_list.html" %}
       {%include template_name%}

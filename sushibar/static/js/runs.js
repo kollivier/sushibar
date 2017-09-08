@@ -4,7 +4,8 @@ function format_date(run) {
 
 function get_dataset(resource, idx, data) {
   // Bottle Rocket and Castello Cavalcanti.
-  var colors = ["#D8B70A", "#02401B", "#A2A475", "#81A88D", "#972D15", "#FAD510", "#CB2314", "#273046", "#354823", "#1E1E1E"];
+  var colors = ["#F3BE1A", "#AC9DBC", "#067586", "#C87533", "#52656B", "#CF5351", "#2196F3", "#738F1E", "#66321C", "#FFA475"];
+
   return {
     label: resource,
     data: data.map(function(x) {
@@ -13,16 +14,21 @@ function get_dataset(resource, idx, data) {
     backgroundColor: Chart.helpers.color(colors[idx]).alpha(0.5).rgbString(),
     borderColor: colors[idx],
     borderWidth: 1,
-    fill: false
+    fill: false,
+    pointRadius: 5
   }
 }
 
 function create_config(data) {
+  var counts = data[0].resource_counts;
+  delete counts['total']
+  delete counts['json']
+
   return {
     type: 'line',
     data: {
       labels: data.map(format_date),
-      datasets: Object.keys(data[0].resource_counts).map(
+      datasets: Object.keys(counts).map(
         function(x, i) {
           return get_dataset(x, i, data);
         }),
@@ -37,25 +43,28 @@ function create_config(data) {
           display: true,
           scaleLabel: {
             display: true,
-            labelString: 'Date'
+            labelString: 'Date',
+            fontSize: 16,
           }
         }],
         yAxes: [{
           display: true,
           scaleLabel: {
             display: true,
-            labelString: 'Value'
+            labelString: 'Count',
+            fontSize: 16
           }
         }]
       },
       title: {
         display: true,
-        text: 'Resource Counts'
+        text: 'Resource Counts',
+        fontSize: 20,
+        padding: 10
       }
     }
   };
 }
-
 
 
 $(function() {
@@ -80,7 +89,7 @@ $(function() {
   // Get chart data.
   $.getJSON("/api/channels/" + channel_id + "/runs/", function(data) {
     var myLineChart = new Chart(
-      $("#resource-chart")[0].getContext('2d'), 
+      $("#resource-chart")[0].getContext('2d'),
       create_config(
         data.filter(function(x) {
           return x.resource_counts !== undefined && x.resource_counts !== null;
@@ -88,6 +97,9 @@ $(function() {
   });
   // Collapse content tree.
   $('.content-tree > li a').click(function() {
-    $(this).parent().find('ul').toggle();
+    $(this).parent().find('ul').slideToggle(100);
   });
+
+  var hash = window.location.hash;
+  hash && $('.nav-link[href="' + hash + '"]').tab('show');
 });

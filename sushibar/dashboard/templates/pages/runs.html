@@ -1,106 +1,155 @@
 {% extends "base.html" %}
 {% load staticfiles %}
+
+{% block css %}
+{{ block.super }}
+<link href="{% static 'css/error_page.css' %}" rel="stylesheet">
+<link rel="stylesheet/less" type="text/css" href="{% static 'less/run.less' %}" />
+{% endblock %}
+
+
 {% block content %}
+<div class="container-fluid" id="channel-run">
 <div class="row">
   <div class="col-lg-12">
-    <div class="row">
+    <div class="row" id="channel-title">
       <span style="padding-left: 15px; padding-right: 15px;">
-        <i class="save-icon fa-2x fa {{saved_icon_class}}"></i>
+        <i class="save-icon fa-2x fa {{saved_icon_class}}" title="Toggle Star"></i>
       </span>
       <h2>{{channel.name}}</h2>
     </div>
-    <p>Registered by: <a href="mailto:{{channel.registered_by_user}}">{{channel.registered_by_user}}</a></p>
-    <p>Run by: <a href="mailto:{{run.started_by_user}}">{{run.started_by_user}}</a></p>
-    <p><a href="{{run.content_server}}/channels/{{channel.channel_id.hex}}/edit">View in Content Workshop →</a></p>
-    <div class="dropdown">
-      <button class="btn btn-secondary dropdown-toggle" type="button" id="run-dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-        Other Runs
-      </button>
-      <div class="dropdown-menu" aria-labelledby="run-dropdown">
-        {% for run in channel.runs.all %}
-        <a class="dropdown-item" href="/runs/{{run.run_id.hex}}/">{{run.modified_at}}</a>
+    <div class="row" id="user-details">
+      <div class="col-4">
+        Run:&nbsp;
+        <div class="dropdown">
+          <button class="btn btn-secondary dropdown-toggle" type="button" id="run-dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            {{ run.modified_at }}
+          </button>
+          <div class="dropdown-menu run-dropdown-menu" aria-labelledby="run-dropdown">
+            {% for run in channel.runs.all %}
+            <a class="dropdown-item" href="{% url 'runs' run.run_id.hex %}">{{run.modified_at}}</a>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      <div class="col-8 channel-actions">
+        <a class="btn btn-darkgray pull-right" href="{{channel_url}}" target="_blank">OPEN CHANNEL</a>
+        {% for action in actions %}
+          <a class="btn action-link pull-right" href="{{action.url}}" target="_blank">{{action.action_text}}</a>
         {% endfor %}
       </div>
     </div>
+  </div>
+</div>
+<div class="row" id="summary-details">
+  <div class="col-6 text-center">{% if channel.registered_by_user %}Registered by: <b><a href="mailto:{{channel.registered_by_user}}">{{channel.registered_by_user}}</a></b>{% else %}<i>Not Registered</i>{% endif %}</div>
+  <div class="col-6 text-center">Run by: <b><a href="mailto:{{run.started_by_user}}">{{run.started_by_user}}</a></b></div>
+</div>
+<nav class="row nav nav-pills nav-fill sushi-tabs" id="run-tabs" role="tablist">
+  <a role="presentation" class="col-3 nav-item nav-link show active" data-toggle="tab" href="#statistics" role="tab" aria-controls="statistics" aria-expanded="true">SUMMARY</a>
+  <a role="presentation" class="col-3 nav-item nav-link" data-toggle="tab" href="#tree" role="tab" aria-controls="tree" aria-expanded="true">CONTENT TREE</a>
+  <a role="presentation" class="col-3 nav-item nav-link" data-toggle="tab" href="#summary" role="tab" aria-controls="summary" aria-expanded="true">RESOURCES</a>
+  <a role="presentation" class="col-3 nav-item nav-link" data-toggle="tab" href="#logs" role="tab" aria-controls="logs" aria-expanded="true">LOGS</a>
+</nav>
+<div class="tab-content">
+  <div class="col-12 tab-pane show active" id="statistics" role="tabpanel" aria-labelledby="statistics">
+    <em class="pull-right">Total duration: {{total_time}}</em>
+    <h3 class="header">Run Stages</h3>
+    <div class="progress" id="run-progress">
+      {% for stage in run_stages %}
+      <div class="progress-bar active stage-progress truncate" aria-valuenow="20"
+      aria-valuemin="0" aria-valuemax="100" data-toggle="tooltip" data-placement="top" data-animation="false" title="{{stage.readable_name}}: {{stage.duration}}" data-trigger="focus hover" style="background-color: {{stage.color}}; width: {{stage.percentage}}%;">{{stage.readable_name}}</div>
+      {% endfor %}
+    </div>
     <br>
+    <hr/>
+    <canvas id="resource-chart" width="500" height="300" style="display: block; height: 400px; width: 500px;"></canvas>
   </div>
-</div>
-<div class="card">
-  <div class="card-header">
-   <h3 class="card-title">Run Statistics</h3>
- </div>
- <div class="card-block">
-  <div class="progress">
-    {% for stage in run_stages %}
-    <div class="progress-bar progress-bar-striped active stage-progress" aria-valuenow="20"
-    aria-valuemin="0" aria-valuemax="100" data-toggle="tooltip" data-placement="top" data-animation="false" title="{{stage.name}}: {{stage.duration}}" data-trigger="focus hover" style="background-color: {{stage.color}}; width: {{stage.percentage}}%;">{{stage.name}}</div>
-    {% endfor %}
-  </div>
-  <br>
-  <p>Total duration: {{total_time}}</p>
-  <hr>
-  <h6>Resource Counts</h6>
-  <div class="table-responsive">
-    <table class="table">
-      <thead>
-        <tr>
-          <th></th>
-          <th>Current Run</th>
-          <th>Previous Run</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for run_stat in resource_counts %}
-        <tr>
-          <td><i class="fa {{run_stat.icon}}"></i> {{run_stat.name}}</td>
-          <td class="{{run_stat.bg_class}}">{{run_stat.value}}</td>
-          <td>{{run_stat.previous_value}}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-  <h6>Resource Sizes</h6>
-  <div class="table-responsive">
-    <table class="table">
-      <thead>
-        <tr>
-          <th></th>
-          <th>Current Run</th>
-          <th>Previous Run</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for run_stat in resource_sizes %}
-        <tr>
-          <td><i class="fa {{run_stat.icon}}"></i> {{run_stat.name}}</td>
-          <td class="{{run_stat.bg_class}}">{{run_stat.value}}</td>
-          <td>{{run_stat.previous_value}}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-</div>
-</div>
-<br>
-<div class="row">
-  <div class="col-lg-6">
-    <div class="card">
-      <div class="card-header">
-       <h3 class="card-title">Content Tree</h3>
-     </div>
-     <div class="card-block">
-      <ul class="content-tree">
+  <div class="col-12 tab-pane" id="tree" role="tabpanel" aria-labelledby="tree">
+    <h3>{{channel.name}} Tree</h3>
+    <ul class="content-tree">
       {%for node in topic_tree %}
         {%include "tree_list.html" %}
       {%endfor%}
-      </ul>
+    </ul>
+  </div>
+  <div class="col-12 tab-pane" id="summary" role="tabpanel" aria-labelledby="summary">
+    <div class="row topic_row">
+      <div class="col-4">Current Topic Count</div>
+      <div class="col-2 {{topic_count.bg_class}}">{{topic_count.value}}</div>
+      <div class="col-4">Previous Topic Count</div>
+      <div class="col-2">{{topic_count.previous_value}}</div>
+    </div>
+    <br>
+    <div class="row header_row">
+      <div class="col-3">Type</div>
+      <div class="col-2">Current Count</div>
+      <div class="col-2">Previous Count</div>
+      <div class="col-1"></div>
+      <div class="col-2">Current Size</div>
+      <div class="col-2">Previous Size</div>
+    </div>
+    {% for run_stat in combined_stats %}
+    <div class="row">
+      <div class="col-3"><i class="fa {{run_stat.icon}}"></i> {{run_stat.name}}</div>
+      <div class="col-2 {{run_stat.bg_class}}">{{run_stat.value}}</div>
+      <div class="col-2">{{run_stat.previous_value}}</div>
+      <div class="col-1"></div>
+      <div class="col-2 {{run_stat.size.bg_class}}">{{run_stat.size.value}}</div>
+      <div class="col-2">{{run_stat.size.previous_value}}</div>
+    </div>
+    {% endfor %}
+  </div>
+  <div class="col-12 tab-pane" id="logs" role="tabpanel" aria-labelledby="logs">
+    <div id="accordion" role="tablist" aria-multiselectable="true">
+      <div class="card log-wrapper" id="critical">
+        <div role="tab" class="log-header" role="tab" id="critical-header">
+          <a data-toggle="collapse" data-parent="#accordion" href="#critical-logs" aria-expanded="false" aria-controls="critical-logs">
+            <i class="fa fa-exclamation-circle"></i> &nbsp;ERRORS
+            <span class="badge badge-pill badge-secondary">{{ critical | length }}</span>
+          </a>
+        </div>
+        <div id="critical-logs" class="collapse" role="tabpanel" aria-labelledby="critical-header">
+          <pre class="pre-scrollable">
+            {% for logentry in critical %}
+              <span>{{logentry}}</span>
+            {% endfor %}
+          </pre>
+        </div>
+      </div>
+      <div class="card log-wrapper" id="warning">
+        <div role="tab" class="log-header" role="tab" id="warning-header">
+          <a data-toggle="collapse" data-parent="#accordion" href="#warning-logs" aria-expanded="false" aria-controls="warning-logs">
+            <i class="fa fa-exclamation-triangle"></i> &nbsp;WARNINGS
+            <span class="badge badge-pill badge-secondary">{{ error | length }}</span>
+          </a>
+        </div>
+        <div id="warning-logs" class="collapse" role="tabpanel" aria-labelledby="warning-header">
+          <pre class="pre-scrollable">
+            {% for logentry in error %}
+              <span>{{logentry}}</span>
+            {% endfor %}
+          </pre>
+        </div>
+      </div>
+      <div class="card log-wrapper" id="info">
+        <div role="tab" class="log-header"  role="tab">
+          <a data-toggle="collapse" data-parent="#accordion" href="#info-logs" aria-expanded="false" aria-controls="info-logs">
+            <i class="fa fa-list"></i> &nbsp;LOGS
+            <span class="badge badge-pill badge-secondary">{{ logs | length }}</span>
+          </a>
+        </div>
+        <div id="info-logs" class="collapse show" role="tabpanel" aria-labelledby="info-logs">
+          <pre class="pre-scrollable">
+            {% for logentry in logs %}
+              <span>{{logentry}}</span>
+            {% endfor %}
+          </pre>
+        </div>
+      </div>
     </div>
   </div>
 </div>
-<div class="col-lg-6">
-  <canvas id="resource-chart" width="500" height="300" style="display: block; height: 400px; width: 500px;"></canvas>
 </div>
 {% endblock %}
 {% block javascript %}

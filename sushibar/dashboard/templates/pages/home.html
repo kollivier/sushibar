@@ -1,61 +1,102 @@
 {% extends "base.html" %}
 {% load staticfiles %}
+
+{% block css %}
+{{ block.super }}
+<link rel="stylesheet/less" type="text/css" href="{% static 'less/dashboard.less' %}" />
+{% endblock %}
+
+
 {% block content %}
-{% for title, channels in channels.items %}
-<div class="card-table card">
-  <div class="card-header">
+
+<div id="dashboard">
+<div class="tab-content container-fluid main-tab-content">
+  <div class="row filter-row">
+    <div class="col-9 channel-count">Showing {{channels | length}} Channel{% if channels|length != 1 %}s{% endif%}...</div>
+    <div class="col-3">
+      <select class="filter">
+        <option value="">All</option>
+        {% if request.user.is_authenticated %}<option value="starred">Starred</option>{% endif %}
+        <option value="running">Running</option>
+        <option value="listening">Listening</option>
+        <option value="completed">Completed</option>
+        <option value="failed">Failed</option>
+      </select>
+    </div>
+  </div>
+  <div class="row header_row">
+    <div class="col-1 text-center"><em class="fa fa-cog"></em></div>
+    <div class="col-4">CHANNEL</div>
+    <div class="col-1 text-center">ID</div>
+    <div class="col-2 text-center">STATUS</div>
+    <div class="col-3">PROGRESS</div>
+    <div class="col-1 text-center">ERRORS</div>
+  </div>
+  {% for channel in channels %}
+  <div class="channel-row {% if channel.status != 'COMPLETED' and channel.status != 'Failed' %} running{% endif %}{% if channel.active %} listening{% endif %}{% if channel.status == 'COMPLETED' %} completed{% endif %}{% if channel.status == 'Failed' %} failed{% endif %}{% if channel.starred %} starred{% endif %}">
     <div class="row">
-      <div class="col col-xs-6">
-        <h4 class="card-title">{{title}}</h4>
+      <div class="col-1 text-center">
+        <div class="btn-group" role="group">
+          {% if channel.active %}
+          {% if channel.status == 'COMPLETED' or channel.status == 'Failed' %}
+            <button type="button" class="btn btn-green" data-toggle="modal" data-target="#restart-{{channel.id}}-modal"><em class="fa fa-play"></em></button>
+          {% else %}
+            <button class="btn btn-red" data-toggle="modal" data-target="#stop-{{channel.id}}-modal"><em class="fa fa-stop"></em></button>
+          {% endif %}
+          {% endif %}
+        </div>
+      </div>
+      <div class="col-4 channel_name_cell truncate"><a href="{% url 'runs' channel.last_run_id %}" class="channel_name">{% if channel.starred %}<i class="fa fa-star channel-star"></i> {% endif %}{{channel.channel}}</a></div>
+      <div class="col-1 text-center">
+        <a class="channel-id-btn" data-toggle="tooltip" data-placement="right" title="Copied!" data-trigger="click" data-clipboard-text="{{channel.id}}"><em class="fa fa-clipboard"></em></a>
+      </div>
+      <div class="col-2 text-center">
+
+        <div class="dropdown">
+          <a class="dropdown-toggle" role="button" id="status-{{channel.id}}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="{{channel.ccstatus.helper}}">
+            {% if channel.status != 'Failed' and channel.status != 'COMPLETED' %}In Progress
+            {% else %}{% if channel.status == 'Failed' %}Failed
+            {% else %}{% if channel.ccstatus %}{{channel.ccstatus.name}}
+            {% else %}Active{% endif %}{% endif %}{% endif %}
+          </a>
+          <div class="dropdown-menu" aria-labelledby="status-{{channel.id}}">
+            <a class="dropdown-item">Last Run: <b>{{channel.last_run}}</b></a>
+            <a class="dropdown-item">Duration: <b>{{channel.duration}}</b></a>
+            {% if channel.status == 'COMPLETED' %}
+            <div class="dropdown-divider">&nbsp;</div>
+            {% for action in channel.ccstatus.actions %}
+              <a class="action-link dropdown-item" href="{{action.url}}" target="_blank">{{action.action_text}}</a>
+            {% endfor %}
+            <a class="action-link dropdown-item" href="{{channel_url}}" target="_blank">Open Channel</a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      <div class="col-3">
+          <div class="progress">
+            <div class="progress-bar bg-{{channel.run_status}} channel-progress{% if channel.status == 'Failed' %} failed{% endif %}" role="progressbar" aria-valuenow="{{channel.status_pct}}" title="{{channel.status}}" aria-valuemin="0" aria-valuemax="100" style="width: {{channel.status_pct}}%;">{{channel.status}}</div>
+          </div>
+      </div>
+      <div class="col-1 text-center">
+        {% if channel.failed_count %}
+          <a class="errors" href="{% url 'runs' channel.last_run_id %}#logs" title="{{channel.failed_count}} Error{% if channel.failed_count > 1 %}s{% endif %}"><i class="fa fa-exclamation-circle"></i> {{channel.failed_count}}</a>
+        {% else %}{% if channel.warning_count %}<a class="warnings" href="{% url 'runs' channel.last_run_id %}#logs" title="{{channel.warning_count}} Warning{% if channel.warning_count > 1 %}s{% endif %}"><i class="fa fa-exclamation-triangle"></i> {{channel.warning_count}}</a>{% endif %}
+        {% endif %}
+
       </div>
     </div>
   </div>
-  <div class="card-block">
-    <table class="table table-striped table-bordered table-list">
-      <thead>
-        <tr>
-          <th style="text-align: center"><em class="fa fa-cog"></em></th>
-          <th>Channel</th>
-          <th>ID</th>
-          <th>Last Run</th>
-          <th>Duration</th>
-          <th style="width: 25%">Status</th>
-          <th>Errors</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for channel in channels %}
-        <tr>
-          <td align="center">
-            <button class="control-btn btn btn-{{channel.restart_color}} btn-sm" data-toggle="modal" data-target="#restart-{{channel.id}}-modal"><em class="fa fa-refresh"></em></button>
-            <button class="control-btn btn btn-{{channel.stop_color}} btn-sm" data-toggle="modal" data-target="#stop-{{channel.id}}-modal"><em class="fa fa-stop"></em></button>
-          </td>
-          <td><a href="/runs/{{channel.last_run_id}}/">{{channel.channel}} →</a></td>
-          <td><button class="channel-id-btn btn btn-sm btn-success" data-toggle="tooltip" data-placement="right" title="Copied!" data-trigger="click" data-clipboard-text="{{channel.id}}">Copy</button></td>
-          <td>{{channel.last_run}}</td>
-          <td>{{channel.duration}}</td>
-          <td>
-            <div class="progress">
-              <div class="progress-bar progress-bar-striped progress-bar-animated bg-{{channel.run_status}}" role="progressbar" aria-valuenow="{{channel.status_pct}}" aria-valuemin="0" aria-valuemax="100" style="color: #757575; width: {{channel.status_pct}}%;">{{channel.status}}</div>
-            </div>
-          </td>
-          <td><a class="btn btn-sm btn-{{channel.run_status}}" href="/errors/{{channel.last_run_id}}/">Logs  →</a></td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+  {% empty %}<div class="default-item text-center">No channels found</div>
   </div>
-</div>
-<br>
+
 {% endfor %}
+</div>
 {% endblock %}
 
 {% block modal %}
 {{ block.super }}
-{% for title, channels in channels.items %}
-{% if title == "Active Channels" %}
 {% for channel in channels %}
-<div class="modal fade" id="stop-{{channel.id}}-modal" tabindex="-1" role="dialog">
+<div class="modal fade action-modal stop-modal" id="stop-{{channel.id}}-modal" tabindex="-1" role="dialog">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header">
@@ -66,20 +107,20 @@
       </div>
       <div class="modal-body">
         <p>Channel Name: {{channel.channel}}</p>
-        <p>Chef Name: <a href="{{channel.chef_link}}">{{channel.chef_name}}</a></p>
+        <p>Chef Repository: <a href="{{channel.chef_link}}">{{channel.chef_name}}</a></p>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-primary">Confirm</button>
+        <button type="button" class="btn btn-gray" data-dismiss="modal">CANCEL</button>
+        <button type="button" class="btn btn-red">STOP</button>
       </div>
     </div>
   </div>
 </div>
-<div class="modal fade" id="restart-{{channel.id}}-modal" tabindex="-1" role="dialog">
+<div class="modal fade action-modal start-modal" id="restart-{{channel.id}}-modal" tabindex="-1" role="dialog">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title">Restart Sushi Chef</h5>
+        <h5 class="modal-title">Run Sushi Chef</h5>
         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
@@ -87,17 +128,20 @@
       <div class="modal-body">
         <p>Channel Name: {{channel.channel}}</p>
         <p>Chef Name: <a href="{{channel.chef_link}}">{{channel.chef_name}}</a></p>
-        <p>Chef extra options: <code>{{channel.cl_flags}}</code></p>
+        <p>Run Options:
+          <!-- <code>{{channel.cl_flags}}</code> -->
+          <label class="run-option"><input type="checkbox" id="update-run-option"> Update</label>
+          <label class="run-option"><input type="checkbox" id="stage-run"> Stage</label>
+          <label class="run-option"><input type="checkbox" id="publish-run"> Publish</label>
+        </p>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-primary" onclick="start_channel_handler('{{ channel.id }}')">Confirm</button>
+        <button type="button" class="btn btn-gray" data-dismiss="modal">CANCEL</button>
+        <button type="button" class="btn btn-green" onclick="start_channel_handler('{{ channel.id }}')">RUN</button>
       </div>
     </div>
   </div>
 </div>
-{% endfor %}
-{% endif %}
 {% endfor %}
 {% endblock %}
 
