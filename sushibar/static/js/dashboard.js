@@ -7,10 +7,7 @@ $(function() {
       $(e.target).tooltip('hide');
     }, 500);
   });
-});
 
-
-$(function() {
   var start_channel_handler = function (channel_id) {
 
       var toggleRestartButton = function () {
@@ -34,4 +31,11 @@ $(function() {
 
   // HACK: attach to window so it's globally accessible
   window.start_channel_handler = start_channel_handler;
+
+  $(".filter").on("change", function(event) {
+    var matches = $("." + ($(this).val() || "channel-row"));
+    $(".channel-row").css("display", "none");
+    matches.css("display", "block");
+    $(".channel-count").text("Showing " + matches.length + " Channel" + ((matches.length === 1)? "..." : "s..."))
+  });
 });

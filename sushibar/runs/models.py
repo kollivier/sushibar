@@ -35,13 +35,18 @@ class ContentChannel(models.Model):
 
     followers = models.ManyToManyField(BarUser, related_name="saved_channels")
 
-    def get_channel_status(self):
+    def get_last_run(self):
         try:
-            last_run = channel.runs.latest("created_at")
-            return last_run.events.latest("finished")
-        except (ContentChannelRun.DoesNotExist, ChannelRunStage.DoesNotExist):
+            return self.runs.latest("created_at")
+        except ContentChannelRun.DoesNotExist:
             return None
 
+    def get_status(self):
+        try:
+            last_run = self.get_last_run()
+            return last_run and last_run.events.latest("finished").name
+        except ChannelRunStage.DoesNotExist:
+            return None
 
     def __str__(self):
         return '<Channel ' + self.channel_id.hex[:8] + '...>'
@@ -90,6 +95,20 @@ class ContentChannelRun(models.Model):
 
     def __str__(self):
         return '<Run ' + self.run_id.hex[:8] + '...>'
+
+    def get_logs(self):
+        context = {}
+        logfile_path = self.logfile.path
+        self.logfile.open(mode='r')
+        context['logs'] = self.logfile.readlines()
+        for level in 'critical', 'error':
+            try:
+                with open("%s.%s" % (logfile_path, level)) as f:
+                    context[level] = f.readlines()
+            except OSError:
+                context[level] = []
+                continue
+        return context
 
     class Meta:
         get_latest_by = "created_at"

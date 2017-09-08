@@ -1,0 +1,117 @@
+@import "base.less";
+
+#dashboard {
+	.main-tab-content { min-height: 70vh; }
+	.default-item {
+		padding-top: 20%;
+	    font-size: 20pt;
+	    color: @gray-300;
+	    font-style: italic;
+	    font-weight: bold;
+	}
+    .row {
+    	padding: 10px 0px;
+    	font-size: 12pt;
+    	&:hover{ background-color: @gray-000; }
+    	&.header_row {
+		    font-size: 12pt;
+		    font-weight: bold;
+		    background-color: @header-row-color;
+    	}
+    	&.filter-row {
+    		background-color: @green;
+    		color: white;
+    		font-size: 14pt;
+    		height: 55px;
+    		.channel-count {
+    			font-style: italic;
+    			font-weight: bold;
+    		}
+    		.filter {
+    			width: 100%;
+    			height: 100%;
+    			padding: 5px;
+    			cursor: pointer;
+    			option {
+    				cursor: pointer;
+    				padding: 5px;
+    			}
+    		}
+    	}
+		.channel-id-btn, .channel_name {
+			background-color: transparent;
+			color: @darkgray;
+			&:hover { color: @blue; }
+		}
+		.progress {
+			border-radius: 0px;
+			height: 35px;
+			cursor: default;
+			.channel-progress {
+				cursor: default;
+				height: inherit;
+				background-color: @green !important;
+				padding-top: 4%;
+    			font-size: 12pt;
+    			text-transform: uppercase;
+    			&.failed { background-color: @red !important; }
+			}
+		}
+		.channel_name {
+			color: @darkgray;
+			cursor: pointer;
+			font-size: 14pt;
+			text-decoration: none !important;
+			.channel-star { color: @yellow; }
+		}
+		a{ cursor: pointer; &:hover { text-decoration: none !important; }}
+		.errors, .warnings, .channel-id-btn {
+			font-weight: bold;
+			font-size: 14pt;
+		}
+		.errors { color: @red; }
+		.warnings { color: goldenrod; }
+		.action-link {
+			font-size: 14pt;
+    		margin: 5px 0px;
+    		.link-gray;
+		}
+    }
+}
+.action-modal {
+	.modal-content { margin-top: 20vh; }
+	.modal-title {
+		color: white;
+		font-size: 18pt;
+	}
+	.modal-body { font-size: 14pt; }
+	&.stop-modal {
+		.modal-header { background-color: @red; }
+	}
+	&.start-modal {
+		.modal-header { background-color: @green; }
+	}
+	.run-option {
+	    margin-left: 20px;
+	    cursor: pointer;
+	    input {
+	    	cursor: pointer;
+	    	width: 15px;
+		    height: 15px;
+		    vertical-align: middle;
+	    }
+	}
+}
+
+@media (max-width:767px) {
+	#sushi-wrapper {
+		.tab-content {
+			.row {
+				.channel_name {
+					font-size: 12pt;
+				}
+			}
+		}
+	}
+
+}

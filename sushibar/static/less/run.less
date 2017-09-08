@@ -1,0 +1,165 @@
+@import "base.less";
+
+#channel-run {
+	min-height: 70vh;
+	.summary-link {
+		color: white !important;
+	}
+	.run-dropdown-menu {
+		width: 100%;
+	    margin-top: -5px;
+	    border-top-right-radius: 0px;
+	    border-top-left-radius: 0px;
+	    border-top: none;
+	    padding: 0px;
+	    a { padding: 5px 10px; }
+	}
+	#channel-title {
+		padding: 15px 0px;
+		background-color: @darkred;
+		color: white;
+		.save-icon {
+			color: @lightyellow;
+			cursor: pointer;
+		}
+	}
+	#user-details {
+		padding: 10px 0px;
+		background-color: @tan;
+		font-size: 14pt;
+		.dropdown { display: inline-block; }
+		.logs-link {
+			padding-top: 3px;
+			a {
+				color: @darkgray;
+				font-weight: bold;
+			}
+		}
+		a {
+			text-decoration: none !important;
+			cursor: pointer;
+		}
+		.action-link { .link-gray; }
+	}
+	#run-progress {
+		height: 45px;
+		border-radius: 0px;
+		.progress-bar {
+			height: inherit;
+			padding-top: 1.5%;
+			cursor: pointer;
+			font-size: 12pt;
+		}
+	}
+	#run-tabs {
+		margin-bottom: 30px;
+	}
+	#summary-details {
+		background-color: @gray-000;
+		padding: 5px;
+	}
+	#summary {
+		.row {
+			font-size: 12pt;
+			&.header_row {
+				font-weight: bold;
+				font-size: 14pt;
+				background-color: @darkgray;
+				color: white;
+				&:hover { background-color: @darkgray; }
+			}
+			&.topic_row {
+				border: 2px solid @gray-200;
+			    font-weight: bold;
+			    font-size: 14pt;
+			}
+			&:hover {
+				background-color: @gray-000;
+				font-weight: bold;
+			}
+			> div {
+				padding: 10px;
+				text-align: center;
+			}
+			&:last-child {
+				border-top: 2px solid @gray-200;
+				margin-top: 20px;
+				text-transform: uppercase;
+			}
+		}
+	}
+	#tree {
+		h3 {
+			border-bottom: 3px solid @red;
+		    padding-bottom: 10px;
+		    font-weight: bold;
+		}
+		.content-tree {
+			font-size: 16pt;
+			list-style-type: none;
+			padding-left: 15px;
+			color: @darkgray;
+			li {
+				cursor: default;
+			    padding: 2px 15px;
+			    background-color: white;
+			    &:hover { background-color: @gray-000; }
+				&.topic {
+					cursor: pointer;
+					font-weight: bold !important;
+					li { font-weight: normal; }
+				}
+				&.file .icon { color: @gray-300; }
+				.icon { margin-right: 5px; }
+				.title {
+					max-width: 85%;
+				    display: inline-block;
+				    margin-bottom: -7px;
+				}
+			}
+		}
+		> .content-tree { padding-left: 0px; }
+	}
+	#logs {
+		.log-wrapper {
+			border: 2px solid white;
+			border-radius: 0px;
+			.log-header {
+				font-size: 18pt;
+				padding: 5px 10px;
+				a {
+					color: white;
+					text-decoration: none !important;
+				}
+				.badge {
+					background-color: white;
+					padding: 2px 10px;
+					margin-left: 15px;
+				}
+			}
+		}
+		#critical {
+			border-color: @darkred;
+			.log-header {
+				background-color: @darkred;
+				.badge { color: @darkred; }
+			}
+		}
+		#warning {
+			border-color: @yellow;
+			.log-header {
+				background-color: @yellow;
+				.badge { color: @yellow; }
+			}
+		}
+		#info {
+			border-color: @gray-400;
+			.log-header {
+				background-color: @gray-400;
+				.badge { color: @gray-400; }
+			}
+		}
+	}
+
+
+}
