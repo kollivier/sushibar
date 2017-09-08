@@ -24,24 +24,25 @@ class ContentCurationServerAuthBackend(object):
 
         except BarUser.DoesNotExist:
             # No BarUser exists with this cctoken, let's check if token is valid
-            status, email_or_msg = ccserver_authenticate_user(cctoken, ccemail)
+            status, data = ccserver_authenticate_user(cctoken, ccemail)
             if status == 'success':
                 # We know `cctoken` and `ccemail` provided are valid, create the BarUser
                 new_baruser = BarUser.objects.create(
                     username=ccemail,
                     email=ccemail,
                     cctoken=cctoken,
-                    is_staff = ('@learningequality.org' in ccemail),
+                    is_staff = data.get('is_admin'),
+                    first_name = data.get('first_name'),
+                    last_name = data.get('last_name'),
                 )
                 return new_baruser
 
             elif status == 'failure':
-                print('Authentication failed:', email_or_msg)
+                print('Authentication failed:', data)
                 return None
 
             else:
                 raise ValueError('Unrecognized status from ccserver_authenticate_user')
-
 
     def get_user(self, user_id):
         try:

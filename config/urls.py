@@ -6,7 +6,7 @@ from django.contrib.auth import views as auth_views
 from django.views.generic import TemplateView
 from django.views import defaults as default_views
 
-from sushibar.dashboard.views import DashboardView, RunErrorsView, RunView
+from sushibar.dashboard.views import DashboardView, RunView, open_channel_page
 from sushibar.users.forms import SushiBarAuthenticationForm
 
 urlpatterns = [
@@ -15,7 +15,7 @@ urlpatterns = [
     url(r'^saved/$', DashboardView.as_view(view_saved=True), name='saved'),
     # TODO: this is a bad regex, use a better one that matches UUID4
     url(r'^runs/(?P<runid>[0-9A-Fa-f-]+)/$', RunView.as_view(), name='runs'),
-    url(r'^errors/(?P<runid>[0-9A-Fa-f-]+)/$', RunErrorsView.as_view(template_name='pages/errors.html'), name='errors'),
+    url(r'^channelpage/(?P<channel>[0-9A-Fa-f]+)/$', open_channel_page, name='open_channel_page'),
     url(r'^channels/(?P<channelid>[0-9A-Fa-f-]+)/$', RunView.as_view(search_by_channel=True), name='runs_for_channel'),
     url(r'^about/$', TemplateView.as_view(template_name='pages/about.html'), name='about'),
     url(r'^schedule/$', TemplateView.as_view(template_name='pages/schedule.html'), name='schedule'),
