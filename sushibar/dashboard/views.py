@@ -260,13 +260,15 @@ class RunView(TemplateView):
         else:
             run_id = uuid.UUID(kwargs.get('runid', ''))
             run = ContentChannelRun.objects.get(run_id=run_id)
-        # TODO(arvnd): The previous run will be wrong for any run that
-        # is not the most recent.
-        previous_run = run.channel.runs.all()[:2]
-        if len(previous_run) < 2:
-            previous_run = None
-        else:
-            previous_run = previous_run[1]
+
+        # 2. get previous non-FAILURE run
+        previous_run = None
+        previous_runs = run.channel.runs.all().order_by('-created_at')[:1]
+        for candiate_run in previous_runs:
+            failed = any('FAILURE' in x.name for x in candiate_run.events.all())
+            if not failed:
+                previous_run = candiate_run
+                break
 
         try:
             status, channel_status = get_channel_status_bulk(self.request.user, [run.channel.channel_id.hex])
