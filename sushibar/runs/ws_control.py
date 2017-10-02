@@ -19,10 +19,12 @@ def connect(message):
 def receive(message):
     channel_id = message.channel_session['channel_id']
     print("Receive control %s, %s" % (channel_id, message['text']))
-    Group('control-'+channel_id).send({'text': message['text']})
+    Group('control-' + channel_id).send({'text': message['text']})
 
 
 @channel_session
 def disconnect(message):
     channel_id = message.channel_session['channel_id']
     print("Control disconnecting %s" % channel_id)
+    # Remove from contol group on clean disconnect
+    Group('control-' + channel_id).discard(message.reply_channel)

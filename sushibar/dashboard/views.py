@@ -3,6 +3,7 @@ import json
 import re
 import uuid
 
+from channels import Group
 from django.conf import settings
 from django.core.urlresolvers import reverse_lazy
 from django.http import HttpResponse, HttpResponseBadRequest
@@ -143,8 +144,11 @@ class DashboardView(TemplateView):
             failed = any(logs.get('critical'))
             warnings = any(logs.get('error'))
 
-            # TODO(arvnd): check if channel is open.
-            active = bool(last_run.chef_name)
+            # check if any daemonized chef is listening for control commands
+            control_group = Group('control-' + channel.channel_id.hex)
+            listeners = control_group.channel_layer.group_channels(control_group.name)
+            active = True if len(listeners) > 0 else False
+
             starred = self.request.user.is_authenticated and self.request.user.saved_channels.filter(channel_id=channel.channel_id).exists()
 
             channel_data = {
