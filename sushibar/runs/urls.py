@@ -5,7 +5,7 @@ from .api import ContentChannelListCreate, ContentChannelDetail, RunsForContentC
 from .api import ContentChannelRunListCreate, ContentChannelRunDetail
 from .api import ChannelRunStageListCreate
 from .api import ChannelRunProgressEndpoints
-from .api import ContentChannelSaveToProfile, ContentChannelLoadNodeTree
+from .api import ContentChannelSaveToProfile
 from .api import ChannelControlEndpoints
 
 urlpatterns = [
@@ -24,10 +24,6 @@ urlpatterns = [
     url(regex=r'channels/(?P<channel_id>[0-9A-Fa-f-]+)/save_to_profile/$',
         view=ContentChannelSaveToProfile.as_view(),
         name='save_channel_to_profile'),
-    #
-    url(regex=r'channels/(?P<channel_id>[0-9A-Fa-f-]+)/load_node_tree/(?P<node_id>[0-9A-Fa-f-]+)$',
-        view=ContentChannelLoadNodeTree.as_view(),
-        name='load_node_tree'),
     #
     url(regex=r'channels/(?P<channel_id>[0-9A-Fa-f-]+)/control/$',
         view=ChannelControlEndpoints.as_view(),

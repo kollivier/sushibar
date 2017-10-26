@@ -76,35 +76,6 @@ class ContentChannelSaveToProfile(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class ContentChannelLoadNodeTree(APIView):
-    """
-    Load children under node
-    """
-    # permission_classes = (permissions.AllowAny,)
-
-    def post(self, request, channel_id):
-        """
-        Handle "load node tree" ajax calls.
-        """
-        try:
-            import pdb; pdb.set_trace()
-            channel = ContentChannel.objects.get(channel_id=channel_id)
-        except ContentChannel.DoesNotExist:
-            raise Http404
-
-        serializer = ContentChannelSaveToProfileSerializer(data=request.data)
-        if serializer.is_valid():
-            wants_saved = serializer.data['save_channel_to_profile']
-            channel_followers = channel.followers.all()
-            if wants_saved and request.user not in channel_followers:
-                channel.followers.add(request.user)
-                channel.save()
-            if not wants_saved and request.user in channel_followers:
-                channel.followers.remove(request.user)
-                channel.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 # CHANNEL RUNS #################################################################
 
 class RunsForContentChannelList(APIView):

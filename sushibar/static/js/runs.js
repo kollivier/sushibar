@@ -97,16 +97,7 @@ $(function() {
   });
   // Collapse content tree.
   $('.content-tree > .topic').click(function() {
-    var el = $(this);
-    if(!el.data('loaded')) {
-      var load_tre_url = "/api/channels/" + channel_id + "/load_node_tree/";
-      $.post(load_tre_url, {"node_id": el.data('node-id')}, function() {
-        el.find('ul').slideToggle(100);
-        el.data('loaded', true);
-      });
-    } else {
-      el.find('ul').slideToggle(100);
-    }
+    $(this).find('ul').slideToggle(100);
   });
 
 
