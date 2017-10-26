@@ -1,4 +1,4 @@
-<li class="{%if node.children %}topic{% else %}file{% endif %}"><a><i class="icon fa {{node.icon}}"></i> <div class="title truncate" title="{{node.title}}">{{node.title}}</div>
+<li class="{%if node.has_children %}topic{% else %}file{% endif %}" data-node-id="{{node.node_id}}"><a><i class="icon fa {{node.icon}}"></i> <div class="title truncate" title="{{node.title}}">{{node.title}}</div>
 {% if node.file_size %}
 ({{node.file_size}})
 {% endif %}</a>

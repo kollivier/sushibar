@@ -244,6 +244,20 @@ def ccserver_get_topic_tree(run):
         pass
     return data
 
+def ccserver_get_node_topic_tree(run, node_id):
+    data = []
+    try:
+        request = requests.post(
+                "%s/api/internal/get_node_tree_data" % run.content_server,
+                data=json.dumps({"channel_id" : run.channel.channel_id.hex, "node_id": node_id}),
+                headers={'Authorization': 'Token %s' % run.started_by_user_token,
+                         'Content-Type': 'application/json'})
+        if request.ok:
+            data = request.json().get("tree", [])
+    except requests.ConnectionError:   # fallback when ccserver can't be reached
+        pass
+    return data
+
 # api/internal/get_tree_data
 # Returns a simplified dict of the specified tree
 # POST

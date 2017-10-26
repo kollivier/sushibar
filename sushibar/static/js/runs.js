@@ -96,10 +96,25 @@ $(function() {
         }).slice(0, 10)));
   });
   // Collapse content tree.
-  $('.content-tree > li a').click(function() {
-    $(this).parent().find('ul').slideToggle(100);
+  $('.content-tree > .topic').click(function() {
+    var el = $(this);
+    if(!el.data('loaded')) {
+      var load_tre_url = "/api/channels/" + channel_id + "/load_node_tree/";
+      $.post(load_tre_url, {"node_id": el.data('node-id')}, function() {
+        el.find('ul').slideToggle(100);
+        el.data('loaded', true);
+      });
+    } else {
+      el.find('ul').slideToggle(100);
+    }
   });
+
 
   var hash = window.location.hash;
   hash && $('.nav-link[href="' + hash + '"]').tab('show');
+
+  $('.nav-link').click(function(e) {
+    var new_hash = this['href'].substring(this['href'].indexOf('#')+1);
+    history.replaceState(undefined, undefined, "#" + new_hash);
+  });
 });

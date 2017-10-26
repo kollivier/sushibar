@@ -14,7 +14,9 @@
   <div class="col-lg-12">
     <div class="row" id="channel-title">
       <span style="padding-left: 15px; padding-right: 15px;">
+        {% if logged_in %}
         <i class="save-icon fa-2x fa {{saved_icon_class}}" title="Toggle Star"></i>
+        {% endif %}
       </span>
       <h2>{{channel.name}}</h2>
     </div>
@@ -26,7 +28,7 @@
             {{ run.modified_at }}
           </button>
           <div class="dropdown-menu run-dropdown-menu" aria-labelledby="run-dropdown">
-            {% for run in channel.runs.all %}
+            {% for run in channel_runs %}
             <a class="dropdown-item" href="{% url 'runs' run.run_id.hex %}">{{run.modified_at}}</a>
             {% endfor %}
           </div>
@@ -46,13 +48,13 @@
   <div class="col-6 text-center">Run by: <b><a href="mailto:{{run.started_by_user}}">{{run.started_by_user}}</a></b></div>
 </div>
 <nav class="row nav nav-pills nav-fill sushi-tabs" id="run-tabs" role="tablist">
-  <a role="presentation" class="col-3 nav-item nav-link show active" data-toggle="tab" href="#statistics" role="tab" aria-controls="statistics" aria-expanded="true">SUMMARY</a>
+  <a role="presentation" class="col-3 nav-item nav-link show active" data-toggle="tab" href="#summary" role="tab" aria-controls="summary" aria-expanded="true">SUMMARY</a>
   <a role="presentation" class="col-3 nav-item nav-link" data-toggle="tab" href="#tree" role="tab" aria-controls="tree" aria-expanded="true">CONTENT TREE</a>
-  <a role="presentation" class="col-3 nav-item nav-link" data-toggle="tab" href="#summary" role="tab" aria-controls="summary" aria-expanded="true">RESOURCES</a>
+  <a role="presentation" class="col-3 nav-item nav-link" data-toggle="tab" href="#resources" role="tab" aria-controls="resources" aria-expanded="true">RESOURCES</a>
   <a role="presentation" class="col-3 nav-item nav-link" data-toggle="tab" href="#logs" role="tab" aria-controls="logs" aria-expanded="true">LOGS</a>
 </nav>
 <div class="tab-content">
-  <div class="col-12 tab-pane show active" id="statistics" role="tabpanel" aria-labelledby="statistics">
+  <div class="col-12 tab-pane show active" id="summary" role="tabpanel" aria-labelledby="summary">
     <em class="pull-right">Total duration: {{total_time}}</em>
     <h3 class="header">Run Stages</h3>
     <div class="progress" id="run-progress">
@@ -73,7 +75,7 @@
       {%endfor%}
     </ul>
   </div>
-  <div class="col-12 tab-pane" id="summary" role="tabpanel" aria-labelledby="summary">
+  <div class="col-12 tab-pane" id="resources" role="tabpanel" aria-labelledby="resources">
     <div class="row topic_row">
       <div class="col-4">Current Topic Count</div>
       <div class="col-2 {{topic_count.bg_class}}">{{topic_count.value}}</div>
