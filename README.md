@@ -105,6 +105,28 @@ Kubernetes config from `production.yml` when it's done.
 
 
 
+Update production server
+------------------------
+To deploy new code after updating the local repository, run the following steps:
+
+    # setup access to remote docker daemon
+    eval $(docker-machine env gcpsushibarhost)    # this will set 4 env vars in current shell
+
+    # rebuild
+    docker-compose -f production.yml  build
+
+    # update running containers
+    docker-compose -f production.yml  up -d
+
+    # check containers are running OK
+    docker ps
+
+TODO: research what `--no-deps` flag does and if it's better.
+
+
+
+
+
 Debugging production setup
 --------------------------
 

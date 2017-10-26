@@ -3,6 +3,7 @@ import json
 import re
 import uuid
 
+from channels import Group
 from django.conf import settings
 from django.core.urlresolvers import reverse_lazy
 from django.http import HttpResponse, HttpResponseBadRequest
@@ -143,13 +144,16 @@ class DashboardView(TemplateView):
             failed = any(logs.get('critical'))
             warnings = any(logs.get('error'))
 
-            # TODO(arvnd): check if channel is open.
-            active = bool(last_run.chef_name)
+            # check if any daemonized chef is listening for control commands
+            control_group = Group('control-' + channel.channel_id.hex)
+            listeners = control_group.channel_layer.group_channels(control_group.name)
+            active = True if len(listeners) > 0 else False
+
             starred = self.request.user.is_authenticated and self.request.user.saved_channels.filter(channel_id=channel.channel_id).exists()
 
             channel_data = {
                 "channel": channel.name,
-                "channel_url": "%s/%s/edit" % (channel.default_content_server, channel.channel_id),
+                "channel_url": "%s/%s/edit" % (channel.default_content_server, channel.channel_id.hex),
                 "restart_color": 'success' if active else 'secondary',
                 "stop_color": "danger" if active else "secondary",
                 "active": active,
@@ -257,13 +261,15 @@ class RunView(TemplateView):
         else:
             run_id = uuid.UUID(kwargs.get('runid', ''))
             run = ContentChannelRun.objects.get(run_id=run_id)
-        # TODO(arvnd): The previous run will be wrong for any run that
-        # is not the most recent.
-        previous_run = run.channel.runs.all()[:2]
-        if len(previous_run) < 2:
-            previous_run = None
-        else:
-            previous_run = previous_run[1]
+
+        # 2. get previous non-FAILURE run
+        previous_run = None
+        previous_runs = run.channel.runs.all().order_by('-created_at')[:1]
+        for candiate_run in previous_runs:
+            failed = any('FAILURE' in x.name for x in candiate_run.events.all())
+            if not failed:
+                previous_run = candiate_run
+                break
 
         try:
             status, channel_status = get_channel_status_bulk(self.request.user, [run.channel.channel_id.hex])
@@ -324,6 +330,6 @@ class RunView(TemplateView):
                 context[level] = []
                 continue
 
-        context['channel_url'] = "%s/%s/edit" % (run.channel.default_content_server, run.channel.channel_id)
+        context['channel_url'] = "%s/%s/edit" % (run.channel.default_content_server, run.channel.channel_id.hex)
 
         return context

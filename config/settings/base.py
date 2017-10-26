@@ -290,4 +290,8 @@ MMVP_REDIS_DB = 0
 MMVP_REDIS_TEST_DB = 1
 
 
-DEFAULT_CONTENT_CURATION_SERVER = 'https://develop.contentworkshop.learningequality.org'
+
+# Sushibar specific settings
+# ------------------------------------------------------------------------------
+
+DEFAULT_STUDIO_SERVER = get_env('DEFAULT_STUDIO_SERVER', 'https://develop.contentworkshop.learningequality.org')

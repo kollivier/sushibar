@@ -90,3 +90,8 @@ MMVP_REDIS_PORT = 6379
 MMVP_REDIS_DB = 0
 MMVP_REDIS_TEST_DB = 1
 
+
+# Sushibar specific settings
+# ------------------------------------------------------------------------------
+
+DEFAULT_STUDIO_SERVER = get_env('DEFAULT_STUDIO_SERVER', 'https://develop.contentworkshop.learningequality.org')

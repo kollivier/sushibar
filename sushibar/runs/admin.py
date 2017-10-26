@@ -18,7 +18,7 @@ class ChannelRunStageInline(admin.TabularInline):
 @admin.register(ContentChannelRun)
 class ContentChannelRunAdmin(admin.ModelAdmin):
     def channel_id(self, obj):
-        return obj.channel.channel_id
+        return obj.channel.channel_id.hex
     inlines = [ChannelRunStageInline, ]
     list_display = ('run_id', 'channel_id', 'chef_name', 'created_at')
 

@@ -3,7 +3,10 @@ import json
 from django.conf import settings
 import requests
 
-BASE_URL = "http://127.0.0.1:8000" # settings.DEFAULT_CONTENT_CURATION_SERVER
+BASE_URL = settings.DEFAULT_STUDIO_SERVER
+# TODO(Ivan) need to think about this, because BASE_URL could be different on a
+# per-channel basis, so might want to pass paths below as "templates" and let the
+# calling function fill them in using `run.content_server`    @Jordan: thoughts?
 
 PUBLISH_CHANNEL_URL = "%s/api/internal/publish_channel" % BASE_URL
 GET_CHANNELS_URL = "%s/get_user_channels" % BASE_URL
@@ -76,7 +79,7 @@ def ccserver_authenticate_user(cctoken, ccemail=None):
     """
     print('in ccserver_authenticate_user')
 
-    ccserver_base_url = settings.DEFAULT_CONTENT_CURATION_SERVER
+    ccserver_base_url = settings.DEFAULT_STUDIO_SERVER
     auth_url = "%s/api/internal/authenticate_user_internal" % ccserver_base_url
     try:
         request = requests.post(
