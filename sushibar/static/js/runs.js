@@ -96,8 +96,8 @@ $(function() {
         }).slice(0, 10)));
   });
   // Collapse content tree.
-  $('.content-tree > .topic').click(function() {
-    $(this).find('ul').slideToggle(100);
+  $('.content-tree > li a').click(function() {
+    $(this).parent().find('ul').slideToggle(100);
   });
 
 

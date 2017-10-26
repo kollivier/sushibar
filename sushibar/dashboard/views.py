@@ -245,7 +245,6 @@ def modify_data_recursively(data):
 class RunView(TemplateView):
     template_name = "pages/runs.html"
     search_by_channel = False
-    user = None
 
     @method_decorator(ensure_csrf_cookie)
     def get(self, request, *args, **kwargs):
