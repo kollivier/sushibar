@@ -10,6 +10,7 @@ from os.path import abspath, dirname, join
 # Build sushibar paths starting at the git root like this: join(ROOT_DIR, ...)
 ROOT_DIR = dirname(dirname(dirname(abspath(__file__))))
 APPS_DIR = join(ROOT_DIR, 'sushibar')
+TREES_DIR = join(APPS_DIR, 'trees')
 
 def get_env(var, default=None):
     """

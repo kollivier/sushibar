@@ -1,5 +1,6 @@
 
 from io import StringIO
+import os
 import uuid
 
 from django.conf import settings
@@ -109,6 +110,16 @@ class ContentChannelRun(models.Model):
                 context[level] = []
                 continue
         return context
+
+    def get_tree_data_path(self):
+        subfolder = "{}-{}".format(self.created_at.year, self.created_at.month)
+        directory = os.path.sep.join([settings.TREES_DIR, self.channel.channel_id.hex, subfolder])
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+
+        write_to_path = os.path.join(directory, "{}.json".format(self.run_id.hex))
+        return write_to_path
+
 
     class Meta:
         get_latest_by = "created_at"

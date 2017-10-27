@@ -13,7 +13,6 @@ GET_CHANNELS_URL = "%s/get_user_channels" % BASE_URL
 CHECK_USER_URL = "%s/api/internal/check_user_is_editor" % BASE_URL
 ACTIVATE_CHANNEL_URL = "%s/api/internal/activate_channel_internal" % BASE_URL
 GET_CHANNEL_STATUS_URL = "%s/api/internal/get_channel_status" % BASE_URL
-GET_CHANNEL_STATUS_BULK_URL = "%s/api/internal/get_channel_status_bulk" % BASE_URL
 FINISH_CHANNEL_URL = "%s/api/internal/finish_channel" % BASE_URL
 
 def post_request(baruser, auth_url, data=None):
@@ -32,7 +31,6 @@ def post_request(baruser, auth_url, data=None):
 
     except requests.ConnectionError: # fallback when ccserver can't be reached
         return ('failure', 'Connection error: could not reach the ccserver.')
-
 
 def get_request(baruser, auth_url, data=None):
     if not baruser.is_authenticated or not baruser.cctoken:
@@ -140,19 +138,22 @@ def activate_channel(baruser, channel_id):
     """
     return post_request(baruser, ACTIVATE_CHANNEL_URL, data={"channel_id": channel_id})
 
-
-def get_channel_status(baruser, channel_id):
+def get_channel_status_bulk(run, channel_ids):
     """
-        returns channel's status
+        returns channel's status (use token so anyone can view channels' statuses)
     """
-    return post_request(baruser, GET_CHANNEL_STATUS_URL, data={"channel_id": channel_id})
-
-
-def get_channel_status_bulk(baruser, channel_ids):
-    """
-        returns channel's status
-    """
-    return post_request(baruser, GET_CHANNEL_STATUS_BULK_URL, data={"channel_ids": channel_ids})
+    data = []
+    try:
+        request = requests.post(
+                "%s/api/internal/get_channel_status_bulk" % run.content_server,
+                data=json.dumps({"channel_ids": channel_ids}),
+                headers={'Authorization': 'Token %s' % run.started_by_user_token,
+                         'Content-Type': 'application/json'})
+        if request.ok:
+            return request.json()
+    except requests.ConnectionError:   # fallback when ccserver can't be reached
+        pass
+    return data
 
 
 def get_staged_diff(baruser, channel):
@@ -247,6 +248,33 @@ def ccserver_get_topic_tree(run):
         pass
     return data
 
+def ccserver_get_node_children(run, node_id=None):
+    data = []
+    try:
+        request = requests.post(
+                "%s/api/internal/get_node_tree_data" % run.content_server,
+                data=json.dumps({"node_id" : node_id, "channel_id": run.channel.channel_id.hex}),
+                headers={'Authorization': 'Token %s' % run.started_by_user_token,
+                         'Content-Type': 'application/json'})
+        if request.ok:
+            data = request.json().get("tree", [])
+    except requests.ConnectionError:   # fallback when ccserver can't be reached
+        pass
+    return data
+
+def ccserver_check_channel_staged(run):
+    data = []
+    try:
+        request = requests.post(
+                "%s/api/internal/check_channel_is_staged" % run.content_server,
+                data=json.dumps({"channel_id": run.channel.channel_id.hex}),
+                headers={'Authorization': 'Token %s' % run.started_by_user_token,
+                         'Content-Type': 'application/json'})
+        if request.ok:
+            data = request.json().get("staged", False)
+    except requests.ConnectionError:   # fallback when ccserver can't be reached
+        pass
+    return data
 # api/internal/get_tree_data
 # Returns a simplified dict of the specified tree
 # POST
