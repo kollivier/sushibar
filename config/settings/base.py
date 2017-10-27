@@ -296,3 +296,13 @@ MMVP_REDIS_TEST_DB = 1
 # ------------------------------------------------------------------------------
 
 DEFAULT_STUDIO_SERVER = get_env('DEFAULT_STUDIO_SERVER', 'https://develop.contentworkshop.learningequality.org')
+
+
+
+
+# Trello integraion
+# ------------------------------------------------------------------------------
+TRELLO_API_KEY = get_env('TRELLO_API_KEY')
+TRELLO_TOKEN = get_env('TRELLO_TOKEN')
+TRELLO_BOARD = get_env('TRELLO_BOARD')
+

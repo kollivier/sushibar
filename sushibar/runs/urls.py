@@ -46,6 +46,4 @@ urlpatterns = [
         name='run_progress'),
 ]
 
-
-
 urlpatterns = format_suffix_patterns(urlpatterns)

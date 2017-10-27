@@ -162,6 +162,38 @@
 			}
 		}
 	}
+}
 
-
+#channel-info-modal{
+	.trello-icon{ color: #1078BA; }
+	.channel-id-btn, .channel_name {
+		background-color: transparent;
+		color: @darkgray;
+		&:hover { color: @blue; }
+	}
+	input {
+		font-family: inherit;
+    	&:read-only {
+    		border: none;
+    		font-weight: bold;
+    	}
+	}
+	.hidden { display: none; }
+    .trello-alert { display: none; }
+	.trello-link-wrapper {
+		input{
+			width: 80%;
+			padding: 5px;
+		}
+		#submit-trello-link, #edit-trello-link, #remove-trello-link {
+			font-size: 14pt;
+		}
+		#remove-trello-link { margin-left: 20px; }
+	}
+	#trello-invalid-url {
+		color: @darkred;
+		font-weight: bold;
+		visibility: hidden;
+		margin: 1px;
+	}
 }
