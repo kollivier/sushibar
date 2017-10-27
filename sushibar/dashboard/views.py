@@ -62,8 +62,10 @@ def make_chef_link(chef_name):
 def fmt_chef_name(chef_name):
     return re.sub(r'git:[\w\d]+$', 'git', chef_name).replace("github.com","").replace("https://", "").replace("git+ssh://git@", "")
 
+def get_status_for_mapping(channel, mapping, run=None):
+    return get_status(mapping.get(channel.channel_id.hex),  run=run)
 
-def get_status(channel, mapping, run=None):
+def get_status(status, run=None, channel_id=None):
     STATUS = {
         "deleted": {
             "name": "Deleted",
@@ -75,7 +77,7 @@ def get_status(channel, mapping, run=None):
             "actions": [
                 {
                     "action_text": "Review Channel",
-                    "url": run and "%s/channels/%s/staging" % (run.content_server, channel.channel_id.hex)
+                    "url": run and "%s/channels/%s/staging" % (run.content_server, run.channel.channel_id.hex)
                 }
             ]
         },
@@ -92,7 +94,7 @@ def get_status(channel, mapping, run=None):
             "helper": "Building topic tree for this channel",
         },
     }
-    return STATUS.get(mapping.get(channel.channel_id.hex))
+    return STATUS.get(status)
 
 # DASHABOARD ###################################################################
 
@@ -113,9 +115,10 @@ class DashboardView(TemplateView):
         status_mapping = {}
 
         try:
-            status, channel_status = get_channel_status_bulk(self.request.user, [c.hex for c in channels.values_list('channel_id', flat=True)])
-            if status == "success":
-                status_mapping = channel_status['statuses']
+            first_run = channels.exists() and channels.first().get_last_run()
+            status = get_channel_status_bulk(first_run, [c.hex for c in channels.values_list('channel_id', flat=True)])
+            if status.get("success"):
+                status_mapping = status['statuses']
         except Exception:
             pass
 
@@ -158,7 +161,7 @@ class DashboardView(TemplateView):
                 "stop_color": "danger" if active else "secondary",
                 "active": active,
                 "id": channel.channel_id.hex,
-                "ccstatus": get_status(channel, status_mapping, run=last_run),
+                "ccstatus": get_status_for_mapping(channel, status_mapping, run=last_run),
                 "starred": starred,
                 "last_run": datetime.strftime(last_event.finished, "%b %d, %H:%M"),
                 "last_run_id": last_run.run_id,
@@ -271,9 +274,11 @@ class RunView(TemplateView):
                 break
 
         try:
-            status, channel_status = get_channel_status_bulk(self.request.user, [run.channel.channel_id.hex])
-            if status == 'success':
-                context['actions'] = get_status(run.channel, channel_status['statuses'], run=run)['actions']
+            status = get_channel_status_bulk(run, [run.channel.channel_id.hex])
+            if status.get('success'):
+                status = status['statuses'][run.channel.channel_id.hex]
+                context['channel_status'] = status
+                context['actions'] = get_status(status, run=run)['actions']
 
         except Exception:
             pass
@@ -314,7 +319,13 @@ class RunView(TemplateView):
         else:
             context['saved_icon_class'] = 'fa-star-o'
 
-        tree_data = ccserver_get_topic_tree(run)
+        tree_data = []
+        try:
+            with open(run.get_tree_data_path(), 'r') as tree_file:
+                tree_data = json.load(tree_file)
+        except FileNotFoundError:
+            tree_data = ccserver_get_topic_tree(run)
+
         modify_data_recursively(tree_data)
         context['topic_tree'] = tree_data
 
