@@ -100,6 +100,12 @@ $(function() {
     $(this).parent().find('ul').slideToggle(100);
   });
 
+
   var hash = window.location.hash;
   hash && $('.nav-link[href="' + hash + '"]').tab('show');
+
+  $('.nav-link').click(function(e) {
+    var new_hash = this['href'].substring(this['href'].indexOf('#')+1);
+    history.replaceState(undefined, undefined, "#" + new_hash);
+  });
 });

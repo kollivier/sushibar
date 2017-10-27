@@ -279,6 +279,8 @@ class RunView(TemplateView):
             pass
 
         context['channel'] = run.channel
+        context['channel_runs'] = run.channel.runs.all().order_by("-created_at")
+        context['logged_in'] = not self.request.user.is_anonymous()
         context['run'] = run
         context['run_stages'] = []
         total_time = timedelta()
