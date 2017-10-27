@@ -68,7 +68,7 @@
     <canvas id="resource-chart" width="500" height="300" style="display: block; height: 400px; width: 500px;"></canvas>
   </div>
   <div class="col-12 tab-pane" id="tree" role="tabpanel" aria-labelledby="tree">
-    <h3>{{channel.name}} Tree</h3>
+    <h3>{{channel.name}} Tree <i>({{channel_status}})</i></h3>
     <ul class="content-tree">
       {%for node in topic_tree %}
         {%include "tree_list.html" %}

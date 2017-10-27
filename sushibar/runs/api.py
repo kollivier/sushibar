@@ -21,6 +21,7 @@ from .serializers import ChannelRunStageCreateSerializer, ChannelRunStageSeriali
 from .serializers import ChannelRunProgressSerializer
 from .serializers import ContentChannelSaveToProfileSerializer
 from .serializers import ChannelControlSerializer
+from .utils import load_tree_for_channel, set_run_options
 
 # REDIS connection #############################################################
 import redis
@@ -179,6 +180,10 @@ class ChannelRunStageListCreate(APIView):
                                                        started=calculated_started,
                                                        finished=server_time,
                                                        duration=duration)
+            if run_stage.name == 'COMPLETED':
+                run = ContentChannelRun.objects.get(run_id=run_id)
+                load_tree_for_channel(run)
+                set_run_options(run)
             # TODO: cleanup dict in redis under name `run_id` on FINISHED stage
             response_serializer = ChannelRunStageSerializer(run_stage)
             return Response(response_serializer.data, status=status.HTTP_201_CREATED)
