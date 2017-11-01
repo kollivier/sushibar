@@ -283,8 +283,14 @@ class RunView(TemplateView):
         except Exception:
             pass
 
+        run.extra_options = run.extra_options or {}
+        context['channel_run_status'] = "staged" if run.extra_options.get("staged") else None
+        context['channel_run_status'] = "published" if run.extra_options.get("published") else None
+        context['channel_run_status'] = context['channel_run_status'] or context.get('channel_status') or "created"
+
         context['channel'] = run.channel
         context['channel_runs'] = run.channel.runs.all().order_by("-created_at")
+        context['last_run_date'] = run.channel.get_last_run().modified_at
         context['logged_in'] = not self.request.user.is_anonymous()
         context['run'] = run
         context['run_stages'] = []

@@ -18,13 +18,8 @@
         <i class="save-icon fa-2x fa {{saved_icon_class}}" title="Toggle Star"></i>
         {% endif %}
       </span>
-      <h2>{{channel.name}}</h2>
+      <h2>{{channel.name}} &nbsp;</h2>
     </div>
-    <div class="row" id="channel-info">
-      <div class="col-6">Channel ID: <b>{{channel.channel_id.hex}}</b></div>
-      <div class="col-6 text-center">Run by: <b><a href="mailto:{{run.started_by_user}}">{{run.started_by_user}}</a></b></div>
-    </div>
-
 
 
     <div class="row" id="user-details">
@@ -42,10 +37,7 @@
         </div>
       </div>
       <div class="col-8 channel-actions">
-        <a class="btn btn-darkgray pull-right" href="{{channel_url}}" target="_blank">OPEN CHANNEL</a>
-        {% for action in actions %}
-          <a class="btn action-link pull-right" href="{{action.url}}" target="_blank">{{action.action_text}}</a>
-        {% endfor %}
+        <button class="btn btn-darkgray pull-right" data-toggle="modal" data-target="#channel-info-modal"><em class="fa fa-window-maximize"></em> OPTIONS</button>
       </div>
     </div>
   </div>
@@ -70,6 +62,7 @@
       aria-valuemin="0" aria-valuemax="100" data-toggle="tooltip" data-placement="top" data-animation="false" title="{{stage.readable_name}}: {{stage.duration}}" data-trigger="focus hover" style="background-color: {{stage.color}}; width: {{stage.percentage}}%;">{{stage.readable_name}}</div>
       {% endfor %}
     </div>
+    <div class="pull-right"><em>{{channel_run_status}}</em></div>
     <br>
     <hr/>
     <canvas id="resource-chart" width="500" height="300" style="display: block; height: 400px; width: 500px;"></canvas>
@@ -160,12 +153,62 @@
   </div>
 </div>
 </div>
+
+<div class="modal fade action-modal start-modal" id="channel-info-modal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title truncate">{{channel.name}}</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="text-center">
+          Channel ID: <input type="text" readonly value="{{channel.channel_id.hex}}" size="40" id="channel-id">
+          <a class="channel-id-btn link-gray" data-toggle="tooltip" data-placement="top" title="Copied!" data-trigger="click" data-clipboard-target="#channel-id"><em class="fa fa-clipboard"></em></a>
+        </div>
+        <br>
+        <div class="text-center">
+          <button type="button" class="btn btn-darkgray" href="{{channel_url}}" target="_blank">OPEN CHANNEL</button>
+          <br>
+          <br>
+          {% for action in actions %}
+            <a class="link-gray" href="{{action.url}}" target="_blank">{{action.action_text}}</a>
+          {% endfor %}
+        </div>
+        <hr/>
+        <h5><b><em class="fa fa-trello trello-icon"></em> &nbsp;Trello Options</b></h5>
+        <br/>
+        <div class="alert alert-success trello-alert trello-success text-center" role="alert"></div>
+        <div class="alert alert-danger trello-alert trello-error text-center" role="alert"></div>
+        <div class="trello-link-wrapper text-center">
+          <input type="text" placeholder="Trello card url..." value="{{channel.trello_link}}" class="trello-link-input">
+          <button class="btn btn-gray submit-trello-link trello-action disabled" disabled><i class="fa fa-save"></i></btn>
+        </div>
+        <br/>
+        <div class="text-center">
+          <a class="btn btn-gray trello-action trello-link {% if not channel.trello_link %}disabled{% endif %}" href="{{channel.trello_link}}" {% if not channel.trello_link %}disabled{% endif %} target="_blank">View Card</a>
+          <a class="btn btn-gray trello-action trello-link-qa {% if not channel.trello_link %}disabled{% endif %}" {% if not channel.trello_link %}disabled{% endif %}>Flag for QA</a>
+          <a class="btn btn-gray trello-action trello-link-storage {% if not channel.trello_link %}disabled{% endif %}" {% if not channel.trello_link %}disabled{% endif %}>Request Storage</a>
+        </div>
+        <br/>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-green pull-right" data-dismiss="modal">OK</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 {% endblock %}
 {% block javascript %}
 {{ block.super }}
 <script>
 var channel_id = "{{channel.channel_id.hex}}";
+var user_email = "{{run.started_by_user}}";
 </script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.6.1/clipboard.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.6.0/Chart.min.js"></script>
 <script src="{% static 'js/moment.js' %}"></script>
 <script src="{% static 'js/runs.js' %}"></script>

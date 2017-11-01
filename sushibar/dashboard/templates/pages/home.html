@@ -46,7 +46,7 @@
           {% endif %}
         </div>
       </div>
-      <div class="col-4 channel_name_cell truncate"><a href="{% url 'runs' channel.last_run_id %}" class="channel_name">{% if channel.starred %}<i class="fa fa-star channel-star"></i> {% endif %}{{channel.channel}}</a></div>
+      <div class="col-4 channel_name_cell truncate"><a href="{% url 'runs' channel.last_run_id %}#summary" class="channel_name">{% if channel.starred %}<i class="fa fa-star channel-star"></i> {% endif %}{{channel.channel}}</a></div>
       <div class="col-1 text-center">
         <a class="channel-id-btn" data-toggle="tooltip" data-placement="right" title="Copied!" data-trigger="click" data-clipboard-text="{{channel.id}}"><em class="fa fa-clipboard"></em></a>
       </div>

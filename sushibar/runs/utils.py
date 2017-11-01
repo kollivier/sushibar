@@ -3,7 +3,9 @@ from sushibar.ccserverlib.services import ccserver_get_node_children, get_channe
 
 def set_run_options(run):
 	run.extra_options = run.extra_options or {}
-	status = get_channel_status_bulk(run, [run.channel.channel_id.hex])['statuses'][run.channel.channel_id.hex]
+	import pdb; pdb.set_trace()
+	status = get_channel_status_bulk(run, [run.channel.channel_id.hex])
+	status = status['statuses'].get(run.channel.channel_id.hex) if status else None
 	run.extra_options.update({
 		'staged': status == 'staged',
 		'published': status =='published'
