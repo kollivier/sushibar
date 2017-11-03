@@ -21,7 +21,6 @@ from .serializers import ChannelRunStageCreateSerializer, ChannelRunStageSeriali
 from .serializers import ChannelRunProgressSerializer
 from .serializers import ContentChannelSaveToProfileSerializer
 from .serializers import ChannelControlSerializer
-from .serializers import ContentChannelSaveTrelloUrlSerializer
 from .utils import load_tree_for_channel, set_run_options
 
 # REDIS connection #############################################################

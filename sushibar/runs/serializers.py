@@ -92,12 +92,6 @@ class ContentChannelSaveToProfileSerializer(serializers.Serializer):
     """
     save_channel_to_profile = serializers.BooleanField()
 
-class ContentChannelSaveTrelloUrlSerializer(serializers.Serializer):
-    """
-    A text field for storing the trello url
-    """
-    trello_url = serializers.URLField()
-
 class ChannelControlSerializer(serializers.Serializer):
     """
     Handles POSTs of control commands.

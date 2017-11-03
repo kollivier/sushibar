@@ -181,12 +181,14 @@
         <h5><b><em class="fa fa-trello trello-icon"></em> &nbsp;Trello Options</b></h5>
         <br/>
         <div class="alert alert-success trello-alert trello-success text-center" role="alert"></div>
+        <div class="alert alert-warning trello-pending trello-alert text-center" role="alert">Pending...</div>
         <div class="alert alert-danger trello-alert trello-error text-center" role="alert"></div>
         <div class="trello-link-wrapper text-center">
           <p id="trello-invalid-url">Invalid Trello URL</p>
           <input type="text" placeholder="Trello card url..." value="{% if channel.trello_url %}{{channel.trello_url}}{% endif %}" id="trello-link-input" {% if channel.trello_url %}readonly{% endif %}>
           <button class="btn btn-gray disabled {% if channel.trello_url %}hidden{% endif %}" disabled id="submit-trello-link"><i class="fa fa-save"></i></button>
-          <a class="link-gray {% if not channel.trello_url %}hidden{% endif %}" id="edit-trello-link"><i class="fa fa-pencil"></i></a>
+          <a class="link-gray {% if not channel.trello_url %}hidden{% endif %}" id="edit-trello-link" title="Save Trello URL"><i class="fa fa-pencil"></i></a>
+          <a class="link-gray {% if not channel.trello_url %}hidden{% endif %}" id="remove-trello-link" title="Remove Trello URL"><i class="fa fa-times"></i></a>
         </div>
         <br/>
         <div class="text-center">

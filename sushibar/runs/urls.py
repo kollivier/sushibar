@@ -7,7 +7,6 @@ from .api import ChannelRunStageListCreate
 from .api import ChannelRunProgressEndpoints
 from .api import ContentChannelSaveToProfile
 from .api import ChannelControlEndpoints
-from .api import ContentChannelSaveTrelloUrl
 
 urlpatterns = [
     url(regex=r'channels/$',
@@ -25,10 +24,6 @@ urlpatterns = [
     url(regex=r'channels/(?P<channel_id>[0-9A-Fa-f-]+)/save_to_profile/$',
         view=ContentChannelSaveToProfile.as_view(),
         name='save_channel_to_profile'),
-    #
-    url(regex=r'channels/(?P<channel_id>[0-9A-Fa-f-]+)/save_trello_url/$',
-        view=ContentChannelSaveTrelloUrl.as_view(),
-        name='save_trello_url'),
     #
     url(regex=r'channels/(?P<channel_id>[0-9A-Fa-f-]+)/control/$',
         view=ChannelControlEndpoints.as_view(),
@@ -50,7 +45,5 @@ urlpatterns = [
         view=ChannelRunProgressEndpoints.as_view(),
         name='run_progress'),
 ]
-
-
 
 urlpatterns = format_suffix_patterns(urlpatterns)

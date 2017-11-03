@@ -33,6 +33,9 @@ urlpatterns = [
     # SushiChef API endpoints
     url(r'^api/', include('sushibar.runs.urls')),
 
+    # External Service API endpoints
+    url(r'^services/trello/', include('sushibar.services.trello.urls')),
+
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 if settings.DEBUG:
