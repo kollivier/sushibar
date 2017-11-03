@@ -169,19 +169,28 @@
 		color: @darkgray;
 		&:hover { color: @blue; }
 	}
-	#channel-id {
-		border: none;
+	input {
 		font-family: inherit;
-    	font-weight: bold;
-    }
+    	&:read-only {
+    		border: none;
+    		font-weight: bold;
+    	}
+	}
+	.hidden { display: none; }
     .trello-alert { display: none; }
 	.trello-link-wrapper {
 		input{
 			width: 80%;
 			padding: 5px;
 		}
-		.submit_trello_link {
-			font-size: 16pt;
+		#submit-trello-link, #edit-trello-link {
+			font-size: 14pt;
 		}
+	}
+	#trello-invalid-url {
+		color: @darkred;
+		font-weight: bold;
+		visibility: hidden;
+		margin: 1px;
 	}
 }

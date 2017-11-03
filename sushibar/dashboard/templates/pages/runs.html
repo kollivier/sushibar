@@ -68,7 +68,7 @@
     <canvas id="resource-chart" width="500" height="300" style="display: block; height: 400px; width: 500px;"></canvas>
   </div>
   <div class="col-12 tab-pane" id="tree" role="tabpanel" aria-labelledby="tree">
-    <h3>{{channel.name}} Tree <i>({{channel_status}})</i></h3>
+    <h3>{{channel.name}} Tree {% if channel_status %}<i>({{channel_status}})</i>{% endif %}</h3>
     <ul class="content-tree">
       {%for node in topic_tree %}
         {%include "tree_list.html" %}
@@ -183,14 +183,16 @@
         <div class="alert alert-success trello-alert trello-success text-center" role="alert"></div>
         <div class="alert alert-danger trello-alert trello-error text-center" role="alert"></div>
         <div class="trello-link-wrapper text-center">
-          <input type="text" placeholder="Trello card url..." value="{{channel.trello_link}}" class="trello-link-input">
-          <button class="btn btn-gray submit-trello-link trello-action disabled" disabled><i class="fa fa-save"></i></btn>
+          <p id="trello-invalid-url">Invalid Trello URL</p>
+          <input type="text" placeholder="Trello card url..." value="{% if channel.trello_url %}{{channel.trello_url}}{% endif %}" id="trello-link-input" {% if channel.trello_url %}readonly{% endif %}>
+          <button class="btn btn-gray disabled {% if channel.trello_url %}hidden{% endif %}" disabled id="submit-trello-link"><i class="fa fa-save"></i></button>
+          <a class="link-gray {% if not channel.trello_url %}hidden{% endif %}" id="edit-trello-link"><i class="fa fa-pencil"></i></a>
         </div>
         <br/>
         <div class="text-center">
-          <a class="btn btn-gray trello-action trello-link {% if not channel.trello_link %}disabled{% endif %}" href="{{channel.trello_link}}" {% if not channel.trello_link %}disabled{% endif %} target="_blank">View Card</a>
-          <a class="btn btn-gray trello-action trello-link-qa {% if not channel.trello_link %}disabled{% endif %}" {% if not channel.trello_link %}disabled{% endif %}>Flag for QA</a>
-          <a class="btn btn-gray trello-action trello-link-storage {% if not channel.trello_link %}disabled{% endif %}" {% if not channel.trello_link %}disabled{% endif %}>Request Storage</a>
+          <a class="btn btn-gray trello-action trello-link {% if not channel.trello_url %}disabled{% endif %}" href="{{channel.trello_url}}" {% if not channel.trello_url %}disabled{% endif %} target="_blank">View Card</a>
+          <a class="btn btn-gray trello-action trello-link-qa {% if not channel.trello_url %}disabled{% endif %}" {% if not channel.trello_url %}disabled{% endif %}>Flag for QA</a>
+          <a class="btn btn-gray trello-action trello-link-storage {% if not channel.trello_url %}disabled{% endif %}" {% if not channel.trello_url %}disabled{% endif %}>Request Storage</a>
         </div>
         <br/>
       </div>

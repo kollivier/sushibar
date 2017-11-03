@@ -1,6 +1,7 @@
 const TRELLO_API_KEY = "d8f67a223292cb8b4b78700405e0c9f3";
 const TRELLO_TOKEN = "054415d8530c5680761ccfe37898d8110c1906a16c418b372f1965217bc5c1e0";
-const TRELLO_REGEX = /https{0,1}:\/\/trello.com\/c\/([0-9A-Za-z]{8})\/.*/g;
+const TRELLO_REGEX = /https{0,1}:\/\/trello.com\/c\/([0-9A-Za-z]{8})\/.*/;
+const TRELLO_BOARD = "59f104b79ba77c02bcf8d9e4"; // when ready: 58b4a93607f1148a4b697899;
 
 function format_date(run) {
   return moment(run["created_at"]).format("MMM D");
@@ -74,19 +75,15 @@ function create_config(data) {
 
 /****************** TRELLO API FUNCTIONS ******************/
 
-  function trello_submit_url(){
-    $(".trello-link-input").val()
-  }
 
   function get_trello_card_id(){
-    return "QXrOCShF"
-    var match = TRELLO_REGEX.exec($(".trello-link-input").val())
+    var match = TRELLO_REGEX.exec($("#trello-link-input").val().trim());
     return match[1];
   }
 
   function format_trello_url(category, endpoint, params, id){
-    id = id || get_trello_card_id($(".trello-link-input").val());
-    var query_params = "?fields=name,url&key=" + TRELLO_API_KEY + "&token=" + TRELLO_TOKEN;
+    id = id || get_trello_card_id($("#trello-link-input").val().trim());
+    var query_params = "?key=" + TRELLO_API_KEY + "&token=" + TRELLO_TOKEN;
     for (var key in (params || {})) {
       query_params += "&" + key + "=" + params[key];
     }
@@ -95,16 +92,45 @@ function create_config(data) {
 
   function update_trello_link(el) {
     $(".trello-alert").css("display", "none");
-    var url = $(".trello-link-input").val();
-    $(".trello-action").addClass("disabled").attr('disabled', 'disabled');
-
+    var url = $("#trello-link-input").val().trim();
+    $("#trello-invalid-url").css('visibility', 'hidden');
     if(TRELLO_REGEX.test(url)){
-      $(".submit-trello-link").removeClass("disabled").removeAttr('disabled');
+      $("#submit-trello-link").removeClass("disabled").removeAttr('disabled');
       $(".trello-link").attr('href', url);
     } else {
-      $(".submit-trello-link").addClass("disabled").attr('disabled', 'disabled');
+      $("#submit-trello-link").addClass("disabled").attr('disabled', 'disabled');
       $(".trello-link").attr('href', '#');
+      url && $("#trello-invalid-url").css('visibility', 'visible');
     }
+  }
+
+  function trello_submit_url(){
+    var trello_url = $("#trello-link-input").val().trim();
+    $.ajax({
+      url: format_trello_url("cards", null),
+      type: "GET",
+      success: function(data){
+        if(data.idBoard !== TRELLO_BOARD){
+          trello_error({"responseText": "Not authorized to post to this board"});
+        } else {
+          var save_trello_url = "/api/channels/" + channel_id + "/save_trello_url/";
+          $.post(save_trello_url, {"trello_url": trello_url}, function() {
+            $("#trello-link-input").attr('readonly', 'readonly');
+            $("#submit-trello-link").addClass("hidden");
+            $("#edit-trello-link").removeClass("hidden");
+            $(".trello-action").removeClass("disabled").removeAttr('disabled');
+          });
+        }
+      },
+      error: trello_error
+    });
+  }
+
+  function trello_edit_url(el) {
+    $("#edit-trello-link").addClass("hidden");
+    $("#submit-trello-link").removeClass("hidden");
+    $("#trello-link-input").removeAttr('readonly');
+    $(".trello-action").addClass("disabled").attr('disabled', 'disabled');
   }
 
   function format_datetime(date) {
@@ -236,10 +262,11 @@ $(function() {
     history.replaceState(undefined, undefined, "#" + new_hash);
   });
 
-  $(".trello-link-input").on("keyup", update_trello_link);
-  $(".trello-link-input").on("keydown", update_trello_link);
-  $(".trello-link-input").on("paste", update_trello_link);
-  $(".submit-trello-link").on("click", trello_submit_url);
+  $("#trello-link-input").on("keyup", update_trello_link);
+  $("#trello-link-input").on("keydown", update_trello_link);
+  $("#trello-link-input").on("paste", update_trello_link);
+  $("#submit-trello-link").on("click", trello_submit_url);
+  $("#edit-trello-link ").on("click", trello_edit_url);
   $(".trello-link-qa").on("click", function() {
     trello_add_checklist_item("QA channel", "Flagged channel for QA");
   });

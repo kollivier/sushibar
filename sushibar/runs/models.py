@@ -24,6 +24,7 @@ class ContentChannel(models.Model):
     version = models.IntegerField(default=0)
     source_domain = models.CharField(max_length=300, blank=True, null=True)
     source_id = models.CharField(max_length=200, blank=True, null=True)
+    trello_url = models.TextField(blank=True, null=True)
 
     # Authorization-related fields for channel (not used in MMVP)
     registered_by_user = models.EmailField(max_length=200, blank=True, null=True)
@@ -81,6 +82,7 @@ class ContentChannelRun(models.Model):
     # Channel stats
     resource_counts = JSONField(blank=True, null=True)
     resource_sizes = JSONField(blank=True, null=True)
+    failed = models.BooleanField(default=False)
 
     # Extra optional attributes like error counts, and command-line toggles (--staging / --publish / --update)
     extra_options = JSONField(blank=True, null=True)

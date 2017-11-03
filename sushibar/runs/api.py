@@ -21,6 +21,7 @@ from .serializers import ChannelRunStageCreateSerializer, ChannelRunStageSeriali
 from .serializers import ChannelRunProgressSerializer
 from .serializers import ContentChannelSaveToProfileSerializer
 from .serializers import ChannelControlSerializer
+from .serializers import ContentChannelSaveTrelloUrlSerializer
 from .utils import load_tree_for_channel, set_run_options
 
 # REDIS connection #############################################################
@@ -74,6 +75,26 @@ class ContentChannelSaveToProfile(APIView):
             if not wants_saved and request.user in channel_followers:
                 channel.followers.remove(request.user)
                 channel.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class ContentChannelSaveTrelloUrl(APIView):
+    """
+    Save trello url to channel
+    """
+    def post(self, request, channel_id, format=None):
+        """
+        Handle "save trello url " ajax calls.
+        """
+        try:
+            channel = ContentChannel.objects.get(channel_id=channel_id)
+        except ContentChannel.DoesNotExist:
+            raise Http404
+        serializer = ContentChannelSaveTrelloUrlSerializer(data=request.data)
+        if serializer.is_valid():
+            trello_url = serializer.data['trello_url']
+            channel.trello_url = trello_url
+            channel.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
