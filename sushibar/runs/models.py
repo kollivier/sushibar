@@ -82,7 +82,6 @@ class ContentChannelRun(models.Model):
     # Channel stats
     resource_counts = JSONField(blank=True, null=True)
     resource_sizes = JSONField(blank=True, null=True)
-    failed = models.BooleanField(default=False)
 
     # Extra optional attributes like error counts, and command-line toggles (--staging / --publish / --update)
     extra_options = JSONField(blank=True, null=True)
