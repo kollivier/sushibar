@@ -111,7 +111,7 @@ class DashboardView(TemplateView):
         context = super(DashboardView, self).get_context_data(**kwargs)
         context['channels'] = []
 
-        channels = ContentChannel.objects.all()
+        channels = ContentChannel.objects.all().order_by('name')
         status_mapping = {}
 
         try:
