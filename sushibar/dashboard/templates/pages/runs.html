@@ -26,12 +26,12 @@
       <div class="col-4">
         Run:&nbsp;
         <div class="dropdown">
-          <button class="btn btn-secondary dropdown-toggle" type="button" id="run-dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <button class="btn btn-secondary dropdown-toggle {% if run.state == 'FAILURE' %}failed-run{% endif %}" type="button" id="run-dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             {{ run.modified_at }}
           </button>
           <div class="dropdown-menu run-dropdown-menu" aria-labelledby="run-dropdown">
             {% for run in channel_runs %}
-            <a class="dropdown-item" href="{% url 'runs' run.run_id.hex %}">{{run.modified_at}}</a>
+            <a class="dropdown-item {% if run.state == 'FAILURE' %}failed-run{% endif %}" href="{% url 'runs' run.run_id.hex %}">{{run.modified_at}}</a>
             {% endfor %}
           </div>
         </div>
@@ -50,25 +50,25 @@
   <a role="presentation" class="col-3 nav-item nav-link show active" data-toggle="tab" href="#summary" role="tab" aria-controls="summary" aria-expanded="true">SUMMARY</a>
   <a role="presentation" class="col-3 nav-item nav-link" data-toggle="tab" href="#tree" role="tab" aria-controls="tree" aria-expanded="true">CONTENT TREE</a>
   <a role="presentation" class="col-3 nav-item nav-link" data-toggle="tab" href="#resources" role="tab" aria-controls="resources" aria-expanded="true">RESOURCES</a>
-  <a role="presentation" class="col-3 nav-item nav-link" data-toggle="tab" href="#logs" role="tab" aria-controls="logs" aria-expanded="true">LOGS</a>
+  <a role="presentation" class="col-3 nav-item nav-link" data-toggle="tab" href="#logs" role="tab" aria-controls="logs" aria-expanded="true">{% if run.state == 'FAILURE' %}<i class="fa fa-exclamation-circle"></i>&nbsp;&nbsp;{% endif %}LOGS</a>
 </nav>
 <div class="tab-content">
   <div class="col-12 tab-pane show active" id="summary" role="tabpanel" aria-labelledby="summary">
     <em class="pull-right">Total duration: {{total_time}}</em>
-    <h3 class="header">Run Stages</h3>
+    <h3 class="header">Run Stages {% if run.state == 'FAILURE' %}<span class="failed-run">- Failed</span>{% endif %}</h3>
     <div class="progress" id="run-progress">
       {% for stage in run_stages %}
       <div class="progress-bar active stage-progress truncate" aria-valuenow="20"
       aria-valuemin="0" aria-valuemax="100" data-toggle="tooltip" data-placement="top" data-animation="false" title="{{stage.readable_name}}: {{stage.duration}}" data-trigger="focus hover" style="background-color: {{stage.color}}; width: {{stage.percentage}}%;">{{stage.readable_name}}</div>
       {% endfor %}
     </div>
-    <div class="pull-right"><em>{{channel_run_status}}</em></div>
+    <div class="pull-right">{% if run.state != 'FAILURE' %}<em>{{channel_run_status}}</em>{% endif %}</div>
     <br>
     <hr/>
     <canvas id="resource-chart" width="500" height="300" style="display: block; height: 400px; width: 500px;"></canvas>
   </div>
   <div class="col-12 tab-pane" id="tree" role="tabpanel" aria-labelledby="tree">
-    <h3>{{channel.name}} Tree {% if channel_status %}<i>({{channel_status}})</i>{% endif %}</h3>
+    <h3>{{channel.name}} Tree {% if run.state == 'FAILURE' %}<i class="failed-run">(failed)</i>{% else %}{% if channel_status %}(<i>{{channel_run_status}}</i>{% endif %}{{channel_status}}){% endif %}</h3>
     <ul class="content-tree">
       {%for node in topic_tree %}
         {%include "tree_list.html" %}

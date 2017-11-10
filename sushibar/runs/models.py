@@ -69,6 +69,11 @@ def create_empty_logfile(sender, **kwargs):
         dummy_file = StringIO()
         run_instance.logfile.save('dummy_filename.log', dummy_file)
 
+def update_run_state(sender, **kwargs):
+    runstage_instance = kwargs["instance"]
+    runstage_instance.run.state = runstage_instance.name
+    runstage_instance.run.save()
+
 class ContentChannelRun(models.Model):
     """
     A particular sushi chef run for the content channel `channel`.
@@ -82,6 +87,7 @@ class ContentChannelRun(models.Model):
     # Channel stats
     resource_counts = JSONField(blank=True, null=True)
     resource_sizes = JSONField(blank=True, null=True)
+    state = models.CharField(max_length=100, blank=True, null=True)
 
     # Extra optional attributes like error counts, and command-line toggles (--staging / --publish / --update)
     extra_options = JSONField(blank=True, null=True)
@@ -145,3 +151,5 @@ class ChannelRunStage(models.Model):
 
     def __str__(self):
         return '<RunStage for run ' + self.run.run_id.hex[:8] + '...>'
+
+post_save.connect(update_run_state, sender=ChannelRunStage, dispatch_uid="updatechannelrunstate")
