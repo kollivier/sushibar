@@ -68,7 +68,7 @@
     <canvas id="resource-chart" width="500" height="300" style="display: block; height: 400px; width: 500px;"></canvas>
   </div>
   <div class="col-12 tab-pane" id="tree" role="tabpanel" aria-labelledby="tree">
-    <h3>{{channel.name}} Tree {% if run.state == 'FAILURE' %}<i class="failed-run">(failed)</i>{% else %}{% if channel_status %}(<i>{{channel_run_status}}</i>{% endif %}{{channel_status}}){% endif %}</h3>
+    <h3>{{channel.name}} Tree {% if run.state == 'FAILURE' %}<i class="failed-run">(failed)</i>{% else %}{% if channel_status %}(<i>{{channel_run_status}}</i>){% endif %}{% endif %}</h3>
     <ul class="content-tree">
       {%for node in topic_tree %}
         {%include "tree_list.html" %}
