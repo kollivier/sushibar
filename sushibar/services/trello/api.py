@@ -84,7 +84,7 @@ class ContentChannelSaveTrelloUrl(TrelloBaseView):
         # Check the card is from the sushibar board
         response = self.get_request("https://api.trello.com/1/cards/{}".format(card_id))
         if response.status_code == 200:
-            trello_data = json.loads(response.content)
+            trello_data = json.loads(response.content.decode('utf-8'))
             if trello_data['idBoard'] != TRELLO_BOARD:
                 return HttpResponseForbidden("Not authorized to access card")
 
@@ -114,7 +114,7 @@ class TrelloAddChecklistItem(TrelloBaseView):
         # Get any checklists that are on the card
         card_id = extract_id(channel.trello_url)
         checklist_response = self.get_request(self.checklist_url.format(card_id))
-        checklists = json.loads(checklist_response.content)
+        checklists = json.loads(checklist_response.content.decode('utf-8'))
         checklist = None
 
         # If there are no checklists, create a new one
