@@ -9,6 +9,19 @@ Features
 
 
 
+Deploy to prod
+--------------
+Assuming your local repository has latest code + credentials + docker installed:
+
+    # setup access to remote docker daemon
+    eval $(docker-machine env gcpsushibarhost)    # this will set 4 env vars in current shell
+
+    docker-compose -f production.yml  build
+    docker-compose -f production.yml  up -d
+    docker ps
+
+
+
 
 Settings
 --------
