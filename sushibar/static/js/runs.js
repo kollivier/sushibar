@@ -136,11 +136,11 @@ function create_config(data) {
   }
 
   function trello_error(message) {
-    $(".trello-pending").css("display", "none");
+    $(".trello-alert").css("display", "none");
     $(".trello-error").css("display", "block").text(message.responseText);
   }
   function trello_success(message) {
-    $(".trello-pending").css("display", "none");
+    $(".trello-alert").css("display", "none");
     $(".trello-success").css("display", "block").text(message);
   }
 
@@ -152,6 +152,20 @@ function create_config(data) {
       url: add_item_url,
       type: "POST",
       data: {"item": item},
+      success: function(data) {
+        trello_success(success_message);
+      },
+      error: trello_error
+    });
+  }
+
+  function trello_flag_channel_for_qa(success_message) {
+    $(".trello-alert").css("display", "none");
+    $(".trello-pending").css("display", "block");
+    var move_url = "/services/trello/" + channel_id + "/flag_for_qa/";
+    $.ajax({
+      url: move_url,
+      type: "PUT",
       success: function(data) {
         trello_success(success_message);
       },
@@ -220,7 +234,7 @@ $(function() {
   $("#edit-trello-link ").on("click", trello_edit_url);
   $("#remove-trello-link ").on("click", trello_remove_url);
   $(".trello-link-qa").on("click", function() {
-    trello_add_checklist_item("QA channel", "Flagged channel for QA");
+    trello_flag_channel_for_qa("Flagged channel for QA");
   });
   $(".trello-link-storage").on("click", function() {
     var message = "Increase storage for " + user_email;

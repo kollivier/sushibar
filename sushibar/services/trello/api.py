@@ -10,12 +10,26 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from sushibar.runs.models import ContentChannel
+from sushibar.services.trello.config import TRELLO_API_KEY, TRELLO_TOKEN, TRELLO_BOARD, TRELLO_RUN_LIST_ID, TRELLO_QA_LIST_ID
 
 
-TRELLO_API_KEY = "d8f67a223292cb8b4b78700405e0c9f3"
-TRELLO_TOKEN = "054415d8530c5680761ccfe37898d8110c1906a16c418b372f1965217bc5c1e0"
-TRELLO_BOARD = "59f104b79ba77c02bcf8d9e4" # when ready: 58b4a93607f1148a4b697899
 TRELLO_REGEX = r'https{0,1}:\/\/trello.com\/c\/([0-9A-Za-z]{8})\/.*'
+
+# Trello Requests
+def post_request(url, data=None):
+  data = data or {}
+  data.update({"key": TRELLO_API_KEY, "token": TRELLO_TOKEN})
+  return requests.post(url, data=data)
+
+def put_request(url, data=None):
+  data = data or {}
+  data.update({"key": TRELLO_API_KEY, "token": TRELLO_TOKEN})
+  return requests.put(url, data=data)
+
+def get_request(url, data=None):
+  data = data or {}
+  data.update({"key": TRELLO_API_KEY, "token": TRELLO_TOKEN})
+  return requests.get("{}?{}".format(url, urllib.parse.urlencode(data)))
 
 def extract_id(url):
   match = re.search(TRELLO_REGEX, url)
@@ -24,31 +38,38 @@ def extract_id(url):
 def format_datetime(dt):
   return dt.strftime("%b %d, %Y at %I:%M%p")
 
+
+def trello_move_card(channel_id, list_id):
+  channel = ContentChannel.objects.get(channel_id=channel_id)
+  card_id = extract_id(channel.trello_url)
+  move_url = "https://api.trello.com/1/cards/{}/idList".format(card_id)
+  response = put_request(move_url, data={"value": list_id})
+  response.raise_for_status()
+  return response
+
+def trello_move_card_to_run_list(channel_id):
+  return trello_move_card(channel_id, TRELLO_RUN_LIST_ID)
+
+
 class TrelloBaseView(APIView):
 
     def post_request(self, url, data=None):
       """
       Set up all POST requests to Trello's API
       """
-      data = data or {}
-      data.update({"key": TRELLO_API_KEY, "token": TRELLO_TOKEN})
-      return requests.post(url, data=data)
+      return post_request(url, data=data)
 
     def put_request(self, url, data=None):
       """
       Set up all PUT requests to Trello's API
       """
-      data = data or {}
-      data.update({"key": TRELLO_API_KEY, "token": TRELLO_TOKEN})
-      return requests.put(url, data=data)
+      return put_request(url, data=data)
 
     def get_request(self, url, data=None):
       """
       Set up all GET requests to Trello's API
       """
-      data = data or {}
-      data.update({"key": TRELLO_API_KEY, "token": TRELLO_TOKEN})
-      return requests.get("{}?{}".format(url, urllib.parse.urlencode(data)))
+      return get_request(url, data=data)
 
 class ContentChannelSaveTrelloUrl(TrelloBaseView):
     """
@@ -142,3 +163,27 @@ class TrelloAddChecklistItem(TrelloBaseView):
             return HttpResponseBadRequest(response.content.capitalize())
 
         return HttpResponse("Added checklist item '{}'".format(formatted_message))
+
+class TrelloMoveToQAList(TrelloBaseView):
+    """
+    Move card to QA list
+    """
+    move_url = "https://api.trello.com/1/cards/{}/idList"
+
+    def put(self, request, channel_id):
+        """
+        Handle "add checklist item" ajax calls.
+        """
+        try:
+            channel = ContentChannel.objects.get(channel_id=channel_id)
+        except ContentChannel.DoesNotExist:
+            return HttpResponseNotFound("Channel not found")
+
+        # Get any checklists that are on the card
+        card_id = extract_id(channel.trello_url)
+        response = self.put_request(self.move_url.format(card_id), {"value": TRELLO_QA_LIST_ID})
+
+        if response.status_code != 200:
+          return HttpResponseBadRequest(response.content.capitalize())
+
+        return HttpResponse("Flagged channel to QA list")
