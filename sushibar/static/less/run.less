@@ -179,22 +179,41 @@
     		font-weight: bold;
     	}
 	}
-	.hidden { display: none; }
     .trello-alert { display: none; }
-	.trello-link-wrapper {
+	#trello-link-wrapper {
 		input{
 			width: 80%;
 			padding: 5px;
 		}
-		#submit-trello-link, #edit-trello-link, #remove-trello-link {
-			font-size: 14pt;
-		}
-		#remove-trello-link { margin-left: 20px; }
+		#submit-trello-link{ font-size: 14pt; }
 	}
+	.trello-extras {
+		width: 316px;
+	    padding: 1px 10px;
+	    &#trello-embed-overlay{
+		    margin: -32px auto 0px auto;
+		    text-align: left !important;
+		    position: relative;
+		}
+		&#trello-remove-card {
+		    margin: 0px auto -1px auto;
+		    text-align: right !important;
+		    background-color: #F8F9F9;
+		    border: 1px solid #E2E4E6;
+		    border-radius: 3px 3px 0px 0px;
+		}
+		&#trello-remove-card a, &#trello-embed-overlay {
+			font-size: 10.5pt;
+		    color: #B6BBBF;
+		}
+	}
+	.board-background { border-radius: 0px !important; }
+
 	#trello-invalid-url {
 		color: @darkred;
 		font-weight: bold;
 		visibility: hidden;
 		margin: 1px;
 	}
+	#trello-url-prompt { color: @gray-700; }
 }

@@ -25,6 +25,8 @@ class ContentChannel(models.Model):
     source_domain = models.CharField(max_length=300, blank=True, null=True)
     source_id = models.CharField(max_length=200, blank=True, null=True)
     trello_url = models.TextField(blank=True, null=True)
+    qa_sheet_url = models.TextField(blank=True, null=True)
+    trello_webhook_url = models.TextField(blank=True, null=True)
 
     # Authorization-related fields for channel (not used in MMVP)
     registered_by_user = models.EmailField(max_length=200, blank=True, null=True)

@@ -5,12 +5,13 @@ import requests
 import urllib
 
 from django.conf import settings
+from django.contrib.sites.shortcuts import get_current_site
 from django.http import Http404, HttpResponse, HttpResponseBadRequest, HttpResponseNotFound, HttpResponseForbidden
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from sushibar.runs.models import ContentChannel
-from sushibar.services.trello.config import TRELLO_BOARD, TRELLO_RUN_LIST_ID, TRELLO_QA_LIST_ID
+from sushibar.services.trello.config import TRELLO_RUN_LIST_ID, TRELLO_QA_LIST_ID
 
 TRELLO_API_KEY = settings.TRELLO_API_KEY
 TRELLO_TOKEN = settings.TRELLO_TOKEN
@@ -44,6 +45,25 @@ def trello_move_card(channel_id, list_id):
 def trello_move_card_to_run_list(channel_id):
     return trello_move_card(channel_id, TRELLO_RUN_LIST_ID)
 
+def trello_create_webhook(request, channel, card_id):
+    domain = request.META.get('HTTP_ORIGIN') or \
+            "http://{}".format(request.get_host() or \
+            get_current_site(request).domain)
+    callback = "{}/services/trello/{}/card_moved/".format(domain, channel.channel_id.hex)
+    url = 'https://api.trello.com/1/webhooks/'
+    response = post_request(url, data={'idModel': card_id, 'description': "card-update", 'callbackURL': callback})
+    response.raise_for_status()
+    channel.trello_webhook_url = callback
+    channel.save()
+
+def trello_get_list_name(channel):
+    card_id = extract_id(channel.trello_url)
+    card_url = "https://api.trello.com/1/cards/{}".format(card_id)
+    response = get_request(card_url)
+    list_id = json.loads(response.content)['idList']
+    list_url = "https://api.trello.com/1/lists/{}".format(list_id)
+    list_response = get_request(list_url)
+    return json.loads(list_response.content)['name']
 
 def extract_id(url):
     match = re.search(TRELLO_REGEX, url)
@@ -91,6 +111,7 @@ class ContentChannelSaveTrelloUrl(TrelloBaseView):
         # Allow user to remove trello url from channels
         if trello_url == "":
             channel.trello_url = None
+            channel.trello_webhook_url = None
             channel.save()
             return HttpResponse("Saved Trello URL")
 
@@ -109,6 +130,7 @@ class ContentChannelSaveTrelloUrl(TrelloBaseView):
             # Save the url if it passes tests
             channel.trello_url = trello_url
             channel.save()
+            # trello_create_webhook(request, channel, trello_data['id'])
             return HttpResponse(response.content)
         else:
             return HttpResponseBadRequest(response.content.capitalize())
@@ -140,7 +162,7 @@ class TrelloAddChecklistItem(TrelloBaseView):
             create_response = self.post_request(self.checklist_url.format(card_id), data={"name": "Channel TODO"})
             if create_response.status_code != 200:
                 return HttpResponseBadRequest(create_response.content.capitalize())
-            checklist = json.loads(create_response.content)['id']
+            checklist = json.loads(create_response.content)
         else:
           checklist = checklists[0]
 
@@ -184,7 +206,56 @@ class TrelloMoveToQAList(TrelloBaseView):
         card_id = extract_id(channel.trello_url)
         response = self.put_request(self.move_url.format(card_id), {"value": TRELLO_QA_LIST_ID})
 
+
+        list_response = self.get_request("https://api.trello.com/1/lists/{}".format(TRELLO_QA_LIST_ID))
+
+        if response.status_code != 200:
+            return HttpResponseBadRequest(response.content.capitalize())
+
+        return HttpResponse(list_response.content)
+
+
+class TrelloNotifyCardMove(TrelloBaseView):
+    """
+    Move card to QA list
+    """
+    move_url = "https://api.trello.com/1/cards/{}/idList"
+
+    def post(self, request, channel_id):
+        """
+        Handle "add checklist item" ajax calls.
+        """
+        try:
+            channel = ContentChannel.objects.get(channel_id=channel_id)
+        except ContentChannel.DoesNotExist:
+            return HttpResponseNotFound("Channel not found")
+
+        # Get any checklists that are on the card
+        card_id = extract_id(channel.trello_url)
+        response = self.put_request(self.move_url.format(card_id), {"value": TRELLO_QA_LIST_ID})
+
         if response.status_code != 200:
             return HttpResponseBadRequest(response.content.capitalize())
 
         return HttpResponse("Flagged channel to QA list")
+
+    def put(self, request, channel_id):
+        """
+        Handle "add checklist item" ajax calls.
+        """
+        try:
+            channel = ContentChannel.objects.get(channel_id=channel_id)
+        except ContentChannel.DoesNotExist:
+            return HttpResponseNotFound("Channel not found")
+
+        # Get any checklists that are on the card
+        card_id = extract_id(channel.trello_url)
+        response = self.put_request(self.move_url.format(card_id), {"value": TRELLO_QA_LIST_ID})
+
+        if response.status_code != 200:
+            return HttpResponseBadRequest(response.content.capitalize())
+
+        return HttpResponse("Flagged channel to QA list")
+
+    def get(self, request, channel_id):
+        return HttpResponse("Success!")

@@ -24,4 +24,3 @@ def load_children_for_node(run, node_id=None):
 			child.update({"children": load_children_for_node(run, node_id=child['node_id'])})
 		tree.append(child)
 	return tree
-

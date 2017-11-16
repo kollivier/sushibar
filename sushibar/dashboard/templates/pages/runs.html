@@ -37,7 +37,7 @@
         </div>
       </div>
       <div class="col-8 channel-actions">
-        <button class="btn btn-darkgray pull-right" data-toggle="modal" data-target="#channel-info-modal"><em class="fa fa-window-maximize"></em> OPTIONS</button>
+        <button class="btn btn-darkgray pull-right" data-toggle="modal" data-target="#channel-info-modal"><em class="fa fa-window-maximize"></em> ACTIONS</button>
       </div>
     </div>
   </div>
@@ -183,18 +183,26 @@
         <div class="alert alert-success trello-alert trello-success text-center" role="alert"></div>
         <div class="alert alert-warning trello-pending trello-alert text-center" role="alert">Pending...</div>
         <div class="alert alert-danger trello-alert trello-error text-center" role="alert"></div>
-        <div class="trello-link-wrapper text-center">
-          <p id="trello-invalid-url">Invalid Trello URL</p>
-          <input type="text" placeholder="Trello card url..." value="{% if channel.trello_url %}{{channel.trello_url}}{% endif %}" id="trello-link-input" {% if channel.trello_url %}readonly{% endif %}>
-          <button class="btn btn-gray disabled {% if channel.trello_url %}hidden{% endif %}" disabled id="submit-trello-link"><i class="fa fa-save"></i></button>
-          <a class="link-gray {% if not channel.trello_url %}hidden{% endif %}" id="edit-trello-link" title="Save Trello URL"><i class="fa fa-pencil"></i></a>
-          <a class="link-gray {% if not channel.trello_url %}hidden{% endif %}" id="remove-trello-link" title="Remove Trello URL"><i class="fa fa-times"></i></a>
+        <div id="trello-embed" class="text-center {% if not channel.trello_url %}hidden{% endif %}">
+          <div id="trello-remove-card" class="trello-extras">
+            <a class="link-gray" id="remove-trello-link" title="Remove Trello Card"><i class="fa fa-times"></i></a>
+          </div>
+          <div id="trello-embed-wrapper">
+            <blockquote class="trello-card-compact"><a href="{{channel.trello_url}}">Trello Card</a></blockquote>
+          </div>
+          <div id="trello-embed-overlay" class="trello-extras">List: <span id="trello-list-name">{{trello_list_name}}</span></div>
+          <br/>
+          <div class="text-center" id="trello-options">
+            <a class="btn btn-gray trello-action" id="trello-link-edit">Edit URL</a>
+            <a class="btn btn-gray trello-action" id="trello-link-qa">Flag for QA</a>
+            <a class="btn btn-gray trello-action" id="trello-link-storage">Request Storage</a>
+          </div>
         </div>
-        <br/>
-        <div class="text-center">
-          <a class="btn btn-gray trello-action trello-link {% if not channel.trello_url %}disabled{% endif %}" href="{{channel.trello_url}}" {% if not channel.trello_url %}disabled{% endif %} target="_blank">View Card</a>
-          <a class="btn btn-gray trello-action trello-link-qa {% if not channel.trello_url %}disabled{% endif %}" {% if not channel.trello_url %}disabled{% endif %}>Flag for QA</a>
-          <a class="btn btn-gray trello-action trello-link-storage {% if not channel.trello_url %}disabled{% endif %}" {% if not channel.trello_url %}disabled{% endif %}>Request Storage</a>
+        <h5 id="trello-url-prompt" class="{% if channel.trello_url %}hidden{% endif %} text-center">Copy Trello URL here to get started</h5>
+        <div class="text-center {% if channel.trello_url %}hidden{% endif %}" id="trello-link-wrapper">
+          <p id="trello-invalid-url">Invalid Trello URL</p>
+          <input type="text" placeholder="Trello card url..." id="trello-link-input" value="{% if channel.trello_url %}{{channel.trello_url}}{% endif %}">
+          <button class="btn btn-gray disabled" disabled id="submit-trello-link"><i class="fa fa-save"></i></button>
         </div>
         <br/>
       </div>
@@ -212,6 +220,7 @@
 var channel_id = "{{channel.channel_id.hex}}";
 var user_email = "{{run.started_by_user}}";
 </script>
+<script src="https://p.trellocdn.com/embed.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.6.1/clipboard.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.6.0/Chart.min.js"></script>
 <script src="{% static 'js/moment.js' %}"></script>
