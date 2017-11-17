@@ -17,6 +17,8 @@
       <select class="filter">
         <option value="">All</option>
         {% if request.user.is_authenticated %}<option value="starred">Starred</option>{% endif %}
+        <option value="changes_needed">Changes Needed</option>
+        <option value="run_needed">Run Needed</option>
         <option value="running">Running</option>
         <option value="listening">Listening</option>
         <option value="completed">Completed</option>
@@ -26,14 +28,14 @@
   </div>
   <div class="row header_row">
     <div class="col-1 text-center"><em class="fa fa-cog"></em></div>
-    <div class="col-4">CHANNEL</div>
+    <div class="col-4">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;CHANNEL</div>
     <div class="col-1 text-center">ID</div>
     <div class="col-2 text-center">STATUS</div>
     <div class="col-3">PROGRESS</div>
     <div class="col-1 text-center">ERRORS</div>
   </div>
   {% for channel in channels %}
-  <div class="channel-row {% if channel.status != 'COMPLETED' and channel.status != 'Failed' %} running{% endif %}{% if channel.active %} listening{% endif %}{% if channel.status == 'COMPLETED' %} completed{% endif %}{% if channel.status == 'Failed' %} failed{% endif %}{% if channel.starred %} starred{% endif %}">
+  <div class="channel-row {% if channel.status != 'COMPLETED' and channel.status != 'Failed' %} running{% endif %}{% if channel.active %} listening{% endif %}{% if channel.status == 'COMPLETED' %} completed{% endif %}{% if channel.status == 'Failed' %} failed{% endif %}{% if channel.starred %} starred{% endif %}{% if channel.run_needed %} run_needed{% endif %}{% if channel.changes_needed %} changes_needed{% endif %}">
     <div class="row">
       <div class="col-1 text-center">
         <div class="btn-group" role="group">
@@ -46,9 +48,22 @@
           {% endif %}
         </div>
       </div>
-      <div class="col-4 channel_name_cell truncate"><a href="{% url 'runs' channel.last_run_id %}#summary" class="channel_name">{% if channel.starred %}<i class="fa fa-star channel-star"></i> {% endif %}{{channel.channel}}</a></div>
+      <div class="col-4 channel_name_cell truncate">
+        {% if channel.changes_needed %}
+          <a href="{% url 'runs' channel.last_run_id %}#summary">
+            <i class="fa fa-square changes-needed-icon popover-icon" data-toggle="tooltip" data-placement="top" title="Changes Requested"></i>
+          </a>
+        {% else %}{% if channel.run_needed %}
+          <a href="{% url 'runs' channel.last_run_id %}#summary">
+            <i class="fa fa-square run-needed-icon popover-icon" data-toggle="tooltip" data-placement="top" title="Run Requested"></i>
+          </a>
+        {% else %}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{% endif %}{% endif %}&nbsp;
+        <a href="{% url 'runs' channel.last_run_id %}#summary" class="channel_name">
+        {% if channel.starred %}<i class="fa fa-star channel-star"></i> {% endif %}
+        {{channel.channel}}
+      </a></div>
       <div class="col-1 text-center">
-        <a class="channel-id-btn" data-toggle="tooltip" data-placement="right" title="Copied!" data-trigger="click" data-clipboard-text="{{channel.id}}"><em class="fa fa-clipboard"></em></a>
+        <a class="channel-id-btn popover-icon" data-toggle="tooltip" data-placement="right" title="Copied!" data-trigger="click" data-clipboard-text="{{channel.id}}"><em class="fa fa-clipboard"></em></a>
       </div>
       <div class="col-2 text-center">
 

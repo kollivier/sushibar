@@ -15,7 +15,6 @@ import redis
 
 from sushibar.ccserverlib.services import ccserver_get_topic_tree, get_channel_status_bulk, activate_channel, ccserver_publish_channel
 from sushibar.runs.models import ContentChannel, ContentChannelRun, ChannelRunStage
-from sushibar.services.trello.api import trello_get_list_name
 
 
 REDIS = redis.StrictRedis(host=settings.MMVP_REDIS_HOST,
@@ -157,6 +156,8 @@ class DashboardView(TemplateView):
 
             channel_data = {
                 "channel": channel.name,
+                "run_needed": channel.run_needed,
+                "changes_needed": channel.changes_needed,
                 "channel_url": "%s/%s/edit" % (channel.default_content_server, channel.channel_id.hex),
                 "restart_color": 'success' if active else 'secondary',
                 "stop_color": "danger" if active else "secondary",
@@ -288,8 +289,6 @@ class RunView(TemplateView):
         context['channel_run_status'] = "staged" if run.extra_options.get("staged") else None
         context['channel_run_status'] = "published" if run.extra_options.get("published") else None
         context['channel_run_status'] = context['channel_run_status'] or context.get('channel_status') or "created"
-        if run.channel.trello_url:
-            context['trello_list_name'] = trello_get_list_name(run.channel)
 
         context['channel'] = run.channel
         context['channel_runs'] = run.channel.runs.all().order_by("-created_at")
