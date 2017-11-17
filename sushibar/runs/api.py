@@ -22,7 +22,6 @@ from .serializers import ChannelRunProgressSerializer
 from .serializers import ContentChannelSaveToProfileSerializer
 from .serializers import ChannelControlSerializer
 from .utils import load_tree_for_channel, set_run_options
-from sushibar.services.trello.api import trello_move_card_to_run_list, trello_create_webhook
 
 # REDIS connection #############################################################
 import redis
@@ -205,8 +204,6 @@ class ChannelRunStageListCreate(APIView):
                 run = ContentChannelRun.objects.get(run_id=run_id)
                 load_tree_for_channel(run)
                 set_run_options(run)
-                if run.channel.trello_url:
-                    trello_move_card_to_run_list(run.channel.channel_id.hex)
 
             # TODO: cleanup dict in redis under name `run_id` on FINISHED stage
             response_serializer = ChannelRunStageSerializer(run_stage)
