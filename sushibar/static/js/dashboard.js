@@ -1,11 +1,13 @@
 // TODO: expose this in every view as part of header.
 $(function() {
   var clipboard = new Clipboard('.channel-id-btn');
-  $('.channel-id-btn').tooltip();
+  $('.popover-icon').tooltip();
   $(document).on('shown.bs.tooltip', function (e) {
-    setTimeout(function () {
-      $(e.target).tooltip('hide');
-    }, 500);
+    if($(e.target).hasClass('channel-id-btn')) {
+      setTimeout(function () {
+        $(e.target).tooltip('hide');
+      }, 1000);
+    }
   });
 
   var start_channel_handler = function (channel_id) {
