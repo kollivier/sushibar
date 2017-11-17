@@ -14,7 +14,7 @@
 	    border-top: none;
 	    padding: 0px;
 	    max-height: 50vh;
-    	    overflow-y: auto;
+    	overflow-y: auto;
 	    a { padding: 5px 10px; }
 	}
 	#channel-title {
@@ -26,9 +26,33 @@
 			cursor: pointer;
 		}
 	}
-	#user-details {
-		padding: 10px 0px;
+	#alert-area {
+		padding: 5px;
+		.alert {
+			font-size: 14pt;
+			height: 60px;
+		    border: none;
+		    border-radius: 0px;
+		    &.trello-action-alert {
+		    	color: @darkyellow;
+		    	background-color: @mediumyellow;
+		    	&.disabled { opacity: 0.8; }
+		    }
+		    a {
+		    	cursor: pointer;
+		    	margin-left: 20px;
+		    	&:hover { font-weight: bold; }
+		    }
+		}
+	}
+	#channel-management-area {
 		background-color: @tan;
+		padding: 10px;
+	}
+	#summary-details {
+		padding: 10px 5px;
+
+		background-color: @gray-000;
 		font-size: 14pt;
 		.dropdown { display: inline-block; }
 		.logs-link {
@@ -43,6 +67,7 @@
 			cursor: pointer;
 		}
 		.action-link { .link-gray; }
+		#user-details { font-size: 11pt; padding-top: 6px; }
 	}
 	#run-progress {
 		height: 45px;
@@ -56,10 +81,6 @@
 	}
 	#run-tabs {
 		margin-bottom: 30px;
-	}
-	#summary-details {
-		background-color: @gray-000;
-		padding: 5px;
 	}
 	#resources {
 		.row {
@@ -166,6 +187,7 @@
 }
 
 #channel-info-modal{
+	.modal-content { width: 565px; }
 	.trello-icon{ color: #1078BA; }
 	.channel-id-btn, .channel_name {
 		background-color: transparent;
@@ -187,33 +209,38 @@
 		}
 		#submit-trello-link{ font-size: 14pt; }
 	}
-	.trello-extras {
+	#trello-update-card {
 		width: 316px;
 	    padding: 1px 10px;
-	    &#trello-embed-overlay{
-		    margin: -32px auto 0px auto;
-		    text-align: left !important;
-		    position: relative;
-		}
-		&#trello-remove-card {
-		    margin: 0px auto -1px auto;
-		    text-align: right !important;
-		    background-color: #F8F9F9;
-		    border: 1px solid #E2E4E6;
-		    border-radius: 3px 3px 0px 0px;
-		}
-		&#trello-remove-card a, &#trello-embed-overlay {
+	    margin: 0px auto -1px auto;
+	    text-align: right !important;
+	    background-color: #F8F9F9;
+	    border: 1px solid #E2E4E6;
+	    border-radius: 3px 3px 0px 0px;
+		a {
+			margin-left: 20px;
 			font-size: 10.5pt;
 		    color: #B6BBBF;
 		}
 	}
 	.board-background { border-radius: 0px !important; }
 
-	#trello-invalid-url {
+	.error-message {
 		color: @darkred;
 		font-weight: bold;
 		visibility: hidden;
 		margin: 1px;
 	}
 	#trello-url-prompt { color: @gray-700; }
+	#trello-comment-section {
+		padding: 15px;
+		margin-bottom: 20px;
+		textarea {
+			resize: none;
+			padding: 5px;
+			width: 100%;
+			min-height: 100px;
+		}
+		#trello-link-cancel { margin: 10px; }
+	}
 }
