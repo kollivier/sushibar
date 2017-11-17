@@ -28,7 +28,7 @@
   </div>
   <div class="row header_row">
     <div class="col-1 text-center"><em class="fa fa-cog"></em></div>
-    <div class="col-4">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;CHANNEL</div>
+    <div class="col-4"><i class="fa fa-square no-request-icon"></i> CHANNEL</div>
     <div class="col-1 text-center">ID</div>
     <div class="col-2 text-center">STATUS</div>
     <div class="col-3">PROGRESS</div>
@@ -57,7 +57,7 @@
           <a href="{% url 'runs' channel.last_run_id %}#summary">
             <i class="fa fa-square run-needed-icon popover-icon" data-toggle="tooltip" data-placement="top" title="Run Requested"></i>
           </a>
-        {% else %}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{% endif %}{% endif %}&nbsp;
+        {% else %}<i class="fa fa-square no-request-icon"></i>{% endif %}{% endif %}&nbsp;
         <a href="{% url 'runs' channel.last_run_id %}#summary" class="channel_name">
         {% if channel.starred %}<i class="fa fa-star channel-star"></i> {% endif %}
         {{channel.channel}}
