@@ -130,27 +130,27 @@ function create_config(data) {
 
   function trello_edit_url(el) {
     $(".trello-alert").css("display", "none");
-    $("#trello-options, #trello-link-wrapper").toggleClass("hidden");
+    $("#trello-options").addClass("hidden");
+    $("#trello-link-wrapper").removeClass("hidden");
+    $("#trello-comment-section").collapse('hide');
     update_trello_link(el);
   }
 
   function trello_error(message) {
     $(".trello-alert").css("display", "none");
-    $(".trello-error").css("display", "block").text(message.responseText);
-    setTimeout(function() {
-      $(".trello-error").fadeOut(500);
-    }, 3000);
+    $("#trello-error").css("display", "block");
+    $("#trello-error .text").text(message.responseText);
   }
   function trello_success(message) {
     $(".trello-alert").css("display", "none");
-    $(".trello-success").css("display", "block").text(message);
+    $("#trello-success").css("display", "block").text(message);
     setTimeout(function() {
-      $(".trello-success").fadeOut(500);
+      $("#trello-success").fadeOut(500);
     }, 3000);
   }
   function trello_pending() {
-    $(".trello-alert").css("display", "none");
-    $(".trello-pending").css("display", "block");
+    $("#trello-alert").css("display", "none");
+    $("#trello-pending").css("display", "block");
   }
 
   function trello_add_checklist_item(item, success_message) {
@@ -167,37 +167,101 @@ function create_config(data) {
     });
   }
 
-  function trello_flag_channel_for_qa(success_message) {
-    trello_pending();
-    var move_url = "/services/trello/" + channel_id + "/flag_for_qa/";
+  function trello_move_card_to_list(endpoint, success_message, onpending, onsuccess, onerror) {
+    onpending();
     $.ajax({
-      url: move_url,
+      url: "/services/trello/" + channel_id + "/" + endpoint + "/",
       type: "PUT",
-      success: function(data) {
-        $("#trello-list-name").text((JSON.parse(data).name));
-        trello_success(success_message);
-      },
-      error: trello_error
+      success: function(data) { onsuccess(success_message); },
+      error: onerror
     });
   }
 
-  function trello_update_list_name() {
-    $("#trello-list-name").text("QA Needed");
+  function trello_flag_channel_for_qa() {
+    trello_move_card_to_list("flag_for_qa", "Flagged channel for QA", trello_pending, trello_success, trello_error);
   }
+
+  function trello_flag_channel_for_publish() {
+    trello_move_card_to_list("flag_for_publish", "Sent publish request", trello_pending, trello_success, trello_error);
+  }
+
+  function alert_trello_error(message) {
+    $("#alert-area .alert").addClass("hidden");
+    $(".trello-action-error").removeClass("hidden").text(message.responseText);
+    setTimeout(function() {
+      $(".trello-action-error").addClass("hidden");
+      $(".alert-processing, .alert-prompt").toggleClass("hidden");
+      $(".trello-action-alert").removeClass("hidden");
+    }, 4000);
+  }
+
+  function alert_trello_success(message) {
+    $("#alert-area .alert").addClass("hidden");
+    $(".trello-action-success").removeClass("hidden");
+    $(".trello-action-success .text").text(message);
+    setTimeout(function() {
+      $(".trello-action-success").addClass("hidden");
+    }, 3000);
+  }
+
+  function alert_trello_pending(message) {
+    $(".alert-processing, .alert-prompt").toggleClass("hidden");
+  }
+
+  function alert_trello_done() {
+    trello_move_card_to_list("mark_as_done", "Marked channel as done", alert_trello_pending, alert_trello_success, alert_trello_error);
+  }
+
+  function alert_trello_qa() {
+    trello_move_card_to_list("flag_for_qa", "Flagged channel for QA", alert_trello_pending, alert_trello_success, alert_trello_error);
+  }
+
+  function update_trello_comment() {
+    $("#trello-invalid-comment").css('visibility', 'hidden');
+  }
+
+  function trello_send_comment() {
+    if(!$("#trello-comment").val().trim()) {
+      $("#trello-invalid-comment").css('visibility', 'visible');
+    } else {
+      $(".trello-alert").css("display", "none");
+      $("#trello-comment-sending").css("display", "block");
+      var comment_url = "/services/trello/" + channel_id + "/send_comment/";
+      $.ajax({
+        url: comment_url,
+        type: "POST",
+        data: {"comment": $("#trello-comment").val().trim()},
+        success: function(data) {
+          $("#trello-comment-section").collapse('hide');
+          $("#trello-comment").val("");
+          trello_success("Comment Sent!");
+        },
+        error: function(message) {
+          $(".trello-alert").css("display", "none");
+          $("#trello-comment-error").css("display", "block");
+          $("#trello-comment-error .text").text(message.responseText);
+        }
+      });
+    }
+  }
+
 
 /****************** END TRELLO API FUNCITONS ******************/
 
 
 
 $(function() {
-  $('.stage-progress').tooltip();
+  // TODO: Add .card-action class once Bootstrap error "Tooltip is transitioning" is fixed
+  // https://github.com/twbs/bootstrap/issues/21607
+  $('.stage-progress, .channel-id-btn').tooltip();
 
   var clipboard = new Clipboard('.channel-id-btn');
-  $('.channel-id-btn').tooltip();
   $(document).on('shown.bs.tooltip', function (e) {
-    setTimeout(function () {
-      $(e.target).tooltip('hide');
-    }, 500);
+    if($(e.target).hasClass('channel-id-btn')) {
+      setTimeout(function () {
+        $(e.target).tooltip('hide');
+      }, 1000);
+    }
   });
 
   // channel save functionality
@@ -246,11 +310,16 @@ $(function() {
   $("#submit-trello-link").on("click", trello_submit_url);
   $("#trello-link-edit").on("click", trello_edit_url);
   $("#remove-trello-link").on("click", trello_remove_url);
-  $("#trello-link-qa").on("click", function() {
-    trello_flag_channel_for_qa("Flagged channel for QA");
-  });
+  $("#trello-link-qa").on("click", trello_flag_channel_for_qa);
+  $("#trello-link-publish").on("click", trello_flag_channel_for_publish);
   $("#trello-link-storage").on("click", function() {
     var message = "Increase storage for " + user_email;
     trello_add_checklist_item(message, "Sent request for storage");
   });
+  $("#trello-send-comment").on("click", trello_send_comment);
+  $("#trello-comment").on("keyup", update_trello_comment);
+  $("#trello-comment").on("keydown", update_trello_comment);
+  $("#trello-comment").on("paste", update_trello_comment);
+  $(".trello-alert-mark-done").on("click", alert_trello_done);
+  $(".trello-alert-flag-for-qa").on("click", alert_trello_qa);
 });

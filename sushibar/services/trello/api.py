@@ -66,7 +66,7 @@ def trello_create_webhook(request, channel, card_id):
     domain = request.META.get('HTTP_ORIGIN') or \
             "http://{}".format(request.get_host() or \
             get_current_site(request).domain)
-    callback = "{}/services/trello/{}/card_moved/".format("http://bc2c484e.ngrok.io", channel.channel_id.hex) # TODO: Change to domain
+    callback = "{}/services/trello/{}/card_moved/".format(domain, channel.channel_id.hex)
     response = post_request('webhooks/', data={'idModel': card_id, 'description': "card-update", 'callbackURL': callback})
 
     # Raises 400 when webhook combination already exists

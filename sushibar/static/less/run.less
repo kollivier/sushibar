@@ -26,24 +26,23 @@
 			cursor: pointer;
 		}
 	}
-	#alert-area {
-		padding: 5px;
-		.alert {
-			font-size: 14pt;
-			height: 60px;
-		    border: none;
-		    border-radius: 0px;
-		    &.trello-action-alert {
-		    	color: @darkyellow;
-		    	background-color: @mediumyellow;
-		    	&.disabled { opacity: 0.8; }
-		    }
-		    a {
-		    	cursor: pointer;
-		    	margin-left: 20px;
-		    	&:hover { font-weight: bold; }
-		    }
-		}
+	#alert-area .alert {
+		font-size: 14pt;
+		height: 60px;
+	    border: none;
+	    border-radius: 0px;
+	    margin: 5px;
+		flex: auto;
+	    &.trello-action-alert {
+	    	color: @darkyellow;
+	    	background-color: @mediumyellow;
+	    	&.disabled { opacity: 0.8; }
+	    }
+	    a {
+	    	cursor: pointer;
+	    	margin-left: 20px;
+	    	&:hover { font-weight: bold; }
+	    }
 	}
 	#channel-management-area {
 		background-color: @tan;
