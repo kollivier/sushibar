@@ -17,12 +17,18 @@ $(function() {
           // TODO: change icon to indicate it's running...
       }
 
-      // POST
+      // build URL for control endpoint
       var channel_control_url = "/api/channels/" + channel_id + "/control/";
-      // post_data = {"command":"start", "options": JSON.stringify({"--publish": false}) }
+
+      // extract args from modaal's checkboxes state
+      var cur_modal = $('div.action-modal.show');  // get the modal for current channel
       post_data = {
         "command": "start",
-        "args": JSON.stringify({}),
+        "args": JSON.stringify({
+          update: cur_modal.find('input#update-run-option').get(0).checked,
+          stage: cur_modal.find('input#stage-run').get(0).checked,
+          publish: cur_modal.find('input#publish-run').get(0).checked
+        }),
         "options": JSON.stringify({})
       }
       $.post(channel_control_url, post_data, toggleRestartButton);
