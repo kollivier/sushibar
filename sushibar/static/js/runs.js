@@ -1,7 +1,4 @@
-const TRELLO_API_KEY = "d8f67a223292cb8b4b78700405e0c9f3";
-const TRELLO_TOKEN = "054415d8530c5680761ccfe37898d8110c1906a16c418b372f1965217bc5c1e0";
 const TRELLO_REGEX = /https{0,1}:\/\/trello.com\/c\/([0-9A-Za-z]{8})\/.*/;
-const TRELLO_BOARD = "59f104b79ba77c02bcf8d9e4"; // when ready: 58b4a93607f1148a4b697899;
 
 function format_date(run) {
   return moment(run["created_at"]).format("MMM D");
