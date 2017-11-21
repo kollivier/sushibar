@@ -9,172 +9,180 @@
 
 
 {% block content %}
-<div class="container-fluid" id="channel-run">
-<div class="row">
-  <div class="col-lg-12">
-    <div class="row" id="channel-title">
-      <span style="padding-left: 15px; padding-right: 15px;">
-        {% if logged_in %}
-        <i class="save-icon fa-2x fa {{saved_icon_class}}" title="Toggle Star"></i>
-        {% endif %}
-      </span>
-      <h2>{{channel.name}} &nbsp;</h2>
-    </div>
-
-
-    <div class="row" id="channel-management-area">
-      <div class="col-12 channel-actions">
-        <button class="btn btn-darkgray pull-right" data-toggle="modal" data-target="#channel-info-modal">MANAGE CHANNEL</button>
-      </div>
-    </div>
-    <div id="alert-area" class="row">
-      {% if channel.run_needed or channel.changes_needed %}
-      <div class="alert col-12 trello-action-error alert-danger hidden" role="alert"></div>
-      <div class="alert col-12 trello-action-success alert-success hidden" role="alert">
-        <b class="text">DONE</b><span class="pull-right fa fa-check"></span>
-      </div>
-      <div class="alert col-12 trello-action-alert" role="alert">
-        <span class="alert-prompt">
-          <i class="fa fa-exclamation-circle"></i> &nbsp;
-          {% if channel.run_needed %}<strong>Run Requested</strong>
-          {% else %}<strong>Changes Requested</strong> &nbsp;Please review the QA sheet and run this chef after making the requested changes
+<div class="container-fluid{% if channel_status == 'New' %} new-channel{% endif %}" id="channel-run">
+  <div class="row">
+    <div class="col-lg-12">
+      <div class="row" id="channel-title">
+        <span style="padding-left: 15px; padding-right: 15px;">
+          {% if logged_in %}
+          <i class="save-icon fa-2x fa {{saved_icon_class}}" title="Toggle Star"></i>
           {% endif %}
-          <a class="pull-right trello-alert-mark-done">DONE</a>
-          <a class="pull-right trello-alert-flag-for-qa">FLAG FOR QA</a>
-          <!-- <a class="pull-right trello-link-to-qa">VIEW FEEDBACK</a> -->
         </span>
-        <span class="alert-processing hidden">
-          <b>PROCESSING...</b>
-          <i class="fa fa-spinner fa-pulse fa-fw pull-right"></i>
-        </span>
+        <h2>{{channel.name}} &nbsp;</h2>
       </div>
-      {% endif %}
+      <div class="row" id="channel-management-area">
+        <div class="col-12 channel-actions">
+          <button class="btn btn-darkgray pull-right" data-toggle="modal" data-target="#channel-info-modal">MANAGE CHANNEL</button>
+        </div>
+      </div>
+      <div id="alert-area" class="row">
+        {% if channel.run_needed or channel.changes_needed %}
+        <div class="alert col-12 trello-action-error alert-danger hidden" role="alert"></div>
+        <div class="alert col-12 trello-action-success alert-success hidden" role="alert">
+          <b class="text">DONE</b><span class="pull-right fa fa-check"></span>
+        </div>
+        <div class="alert col-12 trello-action-alert" role="alert">
+          <span class="alert-prompt">
+            <i class="fa fa-exclamation-circle"></i> &nbsp;
+            {% if channel.run_needed %}<strong>Run Requested</strong>
+            {% else %}<strong>Changes Requested</strong> &nbsp;Please review the QA sheet and run this chef after making the requested changes
+            {% endif %}
+            <a class="pull-right trello-alert-mark-done">DONE</a>
+            <a class="pull-right trello-alert-flag-for-qa">FLAG FOR QA</a>
+            <!-- <a class="pull-right trello-link-to-qa">VIEW FEEDBACK</a> -->
+          </span>
+          <span class="alert-processing hidden">
+            <b>PROCESSING...</b>
+            <i class="fa fa-spinner fa-pulse fa-fw pull-right"></i>
+          </span>
+        </div>
+        {% endif %}
+      </div>
     </div>
   </div>
-</div>
-
-<div class="row" id="summary-details">
-  <div class="col-6">
-    Run:&nbsp;
-    <div class="dropdown">
-      <button class="btn btn-secondary dropdown-toggle {% if run.state == 'FAILURE' %}failed-run{% endif %}" type="button" id="run-dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-        {{ run.modified_at }}
-      </button>
-      <div class="dropdown-menu run-dropdown-menu" aria-labelledby="run-dropdown">
-        {% for run in channel_runs %}
-        <a class="dropdown-item {% if run.state == 'FAILURE' %}failed-run{% endif %}" href="{% url 'runs' run.run_id.hex %}">{{run.modified_at}}</a>
+  {% if channel_status == 'New' %}
+    <div id="getting-started">
+      <h1>Getting Started</h1>
+      <ol>
+        <li>Fork sushi chef <a href="{{channel.chef_repo_url}}" class="link-blue" target="_blank">github repository</a></li>
+        <li>Review channel <a href="{{channel.spec_sheet_url}}" class="link-blue" target="_blank">spec sheet</a></li>
+        <li>When your sushi chef is ready, <a href="{{pr_url}}" class="link-blue" target="_blank">open a PR</a></li>
+      </ol>
+    </div>
+  {% else %}
+    <div class="row" id="summary-details">
+      <div class="col-6">
+        Run:&nbsp;
+        <div class="dropdown">
+          <button class="btn btn-secondary dropdown-toggle {% if run.state == 'FAILURE' %}failed-run{% endif %}" type="button" id="run-dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            {{ run.modified_at }}
+          </button>
+          <div class="dropdown-menu run-dropdown-menu" aria-labelledby="run-dropdown">
+            {% for run in channel_runs %}
+            <a class="dropdown-item {% if run.state == 'FAILURE' %}failed-run{% endif %}" href="{% url 'runs' run.run_id.hex %}">{{run.modified_at}}</a>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      <div class="col-6 text-right" id="user-details">{% if channel.registered_by_user %}Registered by: <b><a href="mailto:{{channel.registered_by_user}}">{{channel.registered_by_user}}</a></b>{% else %}Not Registered{% endif %} &nbsp;&nbsp;|&nbsp;&nbsp; Run by: <b><a href="mailto:{{run.started_by_user}}">{{run.started_by_user}}</a></b></div>
+    </div>
+    <nav class="row nav nav-pills nav-fill sushi-tabs" id="run-tabs" role="tablist">
+      <a role="presentation" class="col-3 nav-item nav-link show active" data-toggle="tab" href="#summary" role="tab" aria-controls="summary" aria-expanded="true">SUMMARY</a>
+      <a role="presentation" class="col-3 nav-item nav-link" data-toggle="tab" href="#tree" role="tab" aria-controls="tree" aria-expanded="true">CONTENT TREE</a>
+      <a role="presentation" class="col-3 nav-item nav-link" data-toggle="tab" href="#resources" role="tab" aria-controls="resources" aria-expanded="true">RESOURCES</a>
+      <a role="presentation" class="col-3 nav-item nav-link" data-toggle="tab" href="#logs" role="tab" aria-controls="logs" aria-expanded="true">{% if run.state == 'FAILURE' %}<i class="fa fa-exclamation-circle"></i>&nbsp;&nbsp;{% endif %}LOGS</a>
+    </nav>
+    <div class="tab-content">
+      <div class="col-12 tab-pane show active" id="summary" role="tabpanel" aria-labelledby="summary">
+        <em class="pull-right">Total duration: {{total_time}}</em>
+        <h3 class="header">Run Stages {% if run.state == 'FAILURE' %}<span class="failed-run">- Failed</span>{% endif %}</h3>
+        <div class="progress" id="run-progress">
+          {% for stage in run_stages %}
+          <div class="progress-bar active stage-progress truncate" aria-valuenow="20"
+          aria-valuemin="0" aria-valuemax="100" data-toggle="tooltip" data-placement="top" data-animation="false" title="{{stage.readable_name}}: {{stage.duration}}" data-trigger="focus hover" style="background-color: {{stage.color}}; width: {{stage.percentage}}%;">{{stage.readable_name}}</div>
+          {% endfor %}
+        </div>
+        <div class="pull-right">{% if run.state != 'FAILURE' %}<em>{{channel_run_status}}</em>{% endif %}</div>
+        <br>
+        <hr/>
+        <canvas id="resource-chart" width="500" height="300" style="display: block; height: 400px; width: 500px;"></canvas>
+      </div>
+      <div class="col-12 tab-pane" id="tree" role="tabpanel" aria-labelledby="tree">
+        <h3>{{channel.name}} Tree {% if run.state == 'FAILURE' %}<i class="failed-run">(failed)</i>{% else %}{% if channel_status %}(<i>{{channel_run_status}}</i>){% endif %}{% endif %}</h3>
+        <ul class="content-tree">
+          {%for node in topic_tree %}
+            {%include "tree_list.html" %}
+          {%endfor%}
+        </ul>
+      </div>
+      <div class="col-12 tab-pane" id="resources" role="tabpanel" aria-labelledby="resources">
+        <div class="row topic_row">
+          <div class="col-4">Current Topic Count</div>
+          <div class="col-2 {{topic_count.bg_class}}">{{topic_count.value}}</div>
+          <div class="col-4">Previous Topic Count</div>
+          <div class="col-2">{{topic_count.previous_value}}</div>
+        </div>
+        <br>
+        <div class="row header_row">
+          <div class="col-3">Type</div>
+          <div class="col-2">Current Count</div>
+          <div class="col-2">Previous Count</div>
+          <div class="col-1"></div>
+          <div class="col-2">Current Size</div>
+          <div class="col-2">Previous Size</div>
+        </div>
+        {% for run_stat in combined_stats %}
+        <div class="row">
+          <div class="col-3"><i class="fa {{run_stat.icon}}"></i> {{run_stat.name}}</div>
+          <div class="col-2 {{run_stat.bg_class}}">{{run_stat.value}}</div>
+          <div class="col-2">{{run_stat.previous_value}}</div>
+          <div class="col-1"></div>
+          <div class="col-2 {{run_stat.size.bg_class}}">{{run_stat.size.value}}</div>
+          <div class="col-2">{{run_stat.size.previous_value}}</div>
+        </div>
         {% endfor %}
       </div>
-    </div>
-  </div>
-  <div class="col-6 text-right" id="user-details">{% if channel.registered_by_user %}Registered by: <b><a href="mailto:{{channel.registered_by_user}}">{{channel.registered_by_user}}</a></b>{% else %}Not Registered{% endif %} &nbsp;&nbsp;|&nbsp;&nbsp; Run by: <b><a href="mailto:{{run.started_by_user}}">{{run.started_by_user}}</a></b></div>
-</div>
-<nav class="row nav nav-pills nav-fill sushi-tabs" id="run-tabs" role="tablist">
-  <a role="presentation" class="col-3 nav-item nav-link show active" data-toggle="tab" href="#summary" role="tab" aria-controls="summary" aria-expanded="true">SUMMARY</a>
-  <a role="presentation" class="col-3 nav-item nav-link" data-toggle="tab" href="#tree" role="tab" aria-controls="tree" aria-expanded="true">CONTENT TREE</a>
-  <a role="presentation" class="col-3 nav-item nav-link" data-toggle="tab" href="#resources" role="tab" aria-controls="resources" aria-expanded="true">RESOURCES</a>
-  <a role="presentation" class="col-3 nav-item nav-link" data-toggle="tab" href="#logs" role="tab" aria-controls="logs" aria-expanded="true">{% if run.state == 'FAILURE' %}<i class="fa fa-exclamation-circle"></i>&nbsp;&nbsp;{% endif %}LOGS</a>
-</nav>
-<div class="tab-content">
-  <div class="col-12 tab-pane show active" id="summary" role="tabpanel" aria-labelledby="summary">
-    <em class="pull-right">Total duration: {{total_time}}</em>
-    <h3 class="header">Run Stages {% if run.state == 'FAILURE' %}<span class="failed-run">- Failed</span>{% endif %}</h3>
-    <div class="progress" id="run-progress">
-      {% for stage in run_stages %}
-      <div class="progress-bar active stage-progress truncate" aria-valuenow="20"
-      aria-valuemin="0" aria-valuemax="100" data-toggle="tooltip" data-placement="top" data-animation="false" title="{{stage.readable_name}}: {{stage.duration}}" data-trigger="focus hover" style="background-color: {{stage.color}}; width: {{stage.percentage}}%;">{{stage.readable_name}}</div>
-      {% endfor %}
-    </div>
-    <div class="pull-right">{% if run.state != 'FAILURE' %}<em>{{channel_run_status}}</em>{% endif %}</div>
-    <br>
-    <hr/>
-    <canvas id="resource-chart" width="500" height="300" style="display: block; height: 400px; width: 500px;"></canvas>
-  </div>
-  <div class="col-12 tab-pane" id="tree" role="tabpanel" aria-labelledby="tree">
-    <h3>{{channel.name}} Tree {% if run.state == 'FAILURE' %}<i class="failed-run">(failed)</i>{% else %}{% if channel_status %}(<i>{{channel_run_status}}</i>){% endif %}{% endif %}</h3>
-    <ul class="content-tree">
-      {%for node in topic_tree %}
-        {%include "tree_list.html" %}
-      {%endfor%}
-    </ul>
-  </div>
-  <div class="col-12 tab-pane" id="resources" role="tabpanel" aria-labelledby="resources">
-    <div class="row topic_row">
-      <div class="col-4">Current Topic Count</div>
-      <div class="col-2 {{topic_count.bg_class}}">{{topic_count.value}}</div>
-      <div class="col-4">Previous Topic Count</div>
-      <div class="col-2">{{topic_count.previous_value}}</div>
-    </div>
-    <br>
-    <div class="row header_row">
-      <div class="col-3">Type</div>
-      <div class="col-2">Current Count</div>
-      <div class="col-2">Previous Count</div>
-      <div class="col-1"></div>
-      <div class="col-2">Current Size</div>
-      <div class="col-2">Previous Size</div>
-    </div>
-    {% for run_stat in combined_stats %}
-    <div class="row">
-      <div class="col-3"><i class="fa {{run_stat.icon}}"></i> {{run_stat.name}}</div>
-      <div class="col-2 {{run_stat.bg_class}}">{{run_stat.value}}</div>
-      <div class="col-2">{{run_stat.previous_value}}</div>
-      <div class="col-1"></div>
-      <div class="col-2 {{run_stat.size.bg_class}}">{{run_stat.size.value}}</div>
-      <div class="col-2">{{run_stat.size.previous_value}}</div>
-    </div>
-    {% endfor %}
-  </div>
-  <div class="col-12 tab-pane" id="logs" role="tabpanel" aria-labelledby="logs">
-    <div id="accordion" role="tablist" aria-multiselectable="true">
-      <div class="card log-wrapper" id="critical">
-        <div role="tab" class="log-header" role="tab" id="critical-header">
-          <a data-toggle="collapse" data-parent="#accordion" href="#critical-logs" aria-expanded="false" aria-controls="critical-logs">
-            <i class="fa fa-exclamation-circle"></i> &nbsp;ERRORS
-            <span class="badge badge-pill badge-secondary">{{ critical | length }}</span>
-          </a>
-        </div>
-        <div id="critical-logs" class="collapse" role="tabpanel" aria-labelledby="critical-header">
-          <pre class="pre-scrollable">
-            {% for logentry in critical %}
-              <span>{{logentry}}</span>
-            {% endfor %}
-          </pre>
-        </div>
-      </div>
-      <div class="card log-wrapper" id="warning">
-        <div role="tab" class="log-header" role="tab" id="warning-header">
-          <a data-toggle="collapse" data-parent="#accordion" href="#warning-logs" aria-expanded="false" aria-controls="warning-logs">
-            <i class="fa fa-exclamation-triangle"></i> &nbsp;WARNINGS
-            <span class="badge badge-pill badge-secondary">{{ error | length }}</span>
-          </a>
-        </div>
-        <div id="warning-logs" class="collapse" role="tabpanel" aria-labelledby="warning-header">
-          <pre class="pre-scrollable">
-            {% for logentry in error %}
-              <span>{{logentry}}</span>
-            {% endfor %}
-          </pre>
-        </div>
-      </div>
-      <div class="card log-wrapper" id="info">
-        <div role="tab" class="log-header"  role="tab">
-          <a data-toggle="collapse" data-parent="#accordion" href="#info-logs" aria-expanded="false" aria-controls="info-logs">
-            <i class="fa fa-list"></i> &nbsp;LOGS
-            <span class="badge badge-pill badge-secondary">{{ logs | length }}</span>
-          </a>
-        </div>
-        <div id="info-logs" class="collapse show" role="tabpanel" aria-labelledby="info-logs">
-          <pre class="pre-scrollable">
-            {% for logentry in logs %}
-              <span>{{logentry}}</span>
-            {% endfor %}
-          </pre>
+      <div class="col-12 tab-pane" id="logs" role="tabpanel" aria-labelledby="logs">
+        <div id="accordion" role="tablist" aria-multiselectable="true">
+          <div class="card log-wrapper" id="critical">
+            <div role="tab" class="log-header" role="tab" id="critical-header">
+              <a data-toggle="collapse" data-parent="#accordion" href="#critical-logs" aria-expanded="false" aria-controls="critical-logs">
+                <i class="fa fa-exclamation-circle"></i> &nbsp;ERRORS
+                <span class="badge badge-pill badge-secondary">{{ critical | length }}</span>
+              </a>
+            </div>
+            <div id="critical-logs" class="collapse" role="tabpanel" aria-labelledby="critical-header">
+              <pre class="pre-scrollable">
+                {% for logentry in critical %}
+                  <span>{{logentry}}</span>
+                {% endfor %}
+              </pre>
+            </div>
+          </div>
+          <div class="card log-wrapper" id="warning">
+            <div role="tab" class="log-header" role="tab" id="warning-header">
+              <a data-toggle="collapse" data-parent="#accordion" href="#warning-logs" aria-expanded="false" aria-controls="warning-logs">
+                <i class="fa fa-exclamation-triangle"></i> &nbsp;WARNINGS
+                <span class="badge badge-pill badge-secondary">{{ error | length }}</span>
+              </a>
+            </div>
+            <div id="warning-logs" class="collapse" role="tabpanel" aria-labelledby="warning-header">
+              <pre class="pre-scrollable">
+                {% for logentry in error %}
+                  <span>{{logentry}}</span>
+                {% endfor %}
+              </pre>
+            </div>
+          </div>
+          <div class="card log-wrapper" id="info">
+            <div role="tab" class="log-header"  role="tab">
+              <a data-toggle="collapse" data-parent="#accordion" href="#info-logs" aria-expanded="false" aria-controls="info-logs">
+                <i class="fa fa-list"></i> &nbsp;LOGS
+                <span class="badge badge-pill badge-secondary">{{ logs | length }}</span>
+              </a>
+            </div>
+            <div id="info-logs" class="collapse show" role="tabpanel" aria-labelledby="info-logs">
+              <pre class="pre-scrollable">
+                {% for logentry in logs %}
+                  <span>{{logentry}}</span>
+                {% endfor %}
+              </pre>
+            </div>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-</div>
+  {% endif %}
 </div>
 
 <div class="modal action-modal start-modal" id="channel-info-modal" tabindex="-1" role="dialog">
@@ -192,16 +200,18 @@
           <a class="channel-id-btn link-gray" data-toggle="tooltip" data-placement="top" title="Copied!" data-trigger="click" data-clipboard-target="#channel-id"><em class="fa fa-clipboard"></em></a>
         </div>
         <br>
-        <div class="text-center">
-          <button type="button" class="btn btn-darkgray" href="{{channel_url}}" target="_blank">OPEN CHANNEL</button>
-          <br>
-          <br>
-          {% for action in actions %}
-            <a class="link-gray" href="{{action.url}}" target="_blank">{{action.action_text}}</a>
-          {% endfor %}
-        </div>
-        <hr/>
-        <h5><b><em class="fa fa-trello trello-icon"></em> &nbsp;Trello Options</b></h5>
+        {% if channel_status != 'New' %}
+          <div class="text-center">
+            <button type="button" class="btn btn-darkgray" href="{{channel_url}}" target="_blank">OPEN CHANNEL</button>
+            <br>
+            <br>
+            {% for action in actions %}
+              <a class="link-gray" href="{{action.url}}" target="_blank">{{action.action_text}}</a>
+            {% endfor %}
+          </div>
+          <hr/>
+          <h5><b><em class="fa fa-trello trello-icon"></em> &nbsp;Trello Options</b></h5>
+        {% endif %}
         <br/>
         <div class="alert alert-success trello-alert trello-success text-center" role="alert" id="trello-success"></div>
         <div class="alert alert-warning trello-pending trello-alert text-center" role="alert" id="trello-pending">Pending...</div>
@@ -223,8 +233,10 @@
           <div class="text-center" id="trello-options">
             <a class="btn btn-gray trello-action" id="trello-link-comment" data-toggle="collapse" data-target="#trello-comment-section" aria-expanded="false" aria-controls="trello-comment-section">Comment</a>
             <a class="btn btn-gray trello-action" id="trello-link-storage">Request Storage</a>
-            <a class="btn btn-gray trello-action" id="trello-link-qa">Flag for QA</a>
-            <a class="btn btn-gray trello-action" id="trello-link-publish">Request Publish</a>
+            {% if channel_status != 'New' %}
+              <a class="btn btn-gray trello-action" id="trello-link-qa">Flag for QA</a>
+              <a class="btn btn-gray trello-action" id="trello-link-publish">Request Publish</a>
+            {% endif %}
           </div>
           <div class="collapse" id="trello-comment-section">
             <hr>
@@ -241,7 +253,7 @@
             <a class="link-gray pull-left" id="trello-link-cancel" data-toggle="collapse" data-target="#trello-comment-section" aria-expanded="false" aria-controls="trello-comment-section">CLOSE</a>
           </div>
         </div>
-        <h5 id="trello-url-prompt" class="{% if channel.trello_url %}hidden{% endif %} text-center">Copy Trello URL here after first chef run</h5>
+        <h5 id="trello-url-prompt" class="{% if channel.trello_url %}hidden{% endif %} text-center">Copy Trello URL here</h5>
         <div class="text-center {% if channel.trello_url %}hidden{% endif %}" id="trello-link-wrapper">
           <p id="trello-invalid-url" class="error-message">Invalid Trello URL</p>
           <input type="text" placeholder="Trello card url..." id="trello-link-input" value="{% if channel.trello_url %}{{channel.trello_url}}{% endif %}">

@@ -1,4 +1,5 @@
 import json
+import uuid
 from sushibar.ccserverlib.services import ccserver_get_node_children, get_channel_status_bulk
 
 def set_run_options(run):
@@ -24,3 +25,7 @@ def load_children_for_node(run, node_id=None):
 			child.update({"children": load_children_for_node(run, node_id=child['node_id'])})
 		tree.append(child)
 	return tree
+
+def calculate_channel_id(source_id, domain):
+	domain_namespace = uuid.uuid5(uuid.NAMESPACE_DNS, domain)
+	return uuid.uuid5(domain_namespace, source_id)

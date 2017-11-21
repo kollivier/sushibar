@@ -6,8 +6,10 @@ import uuid
 from channels import Group
 from django.conf import settings
 from django.core.urlresolvers import reverse_lazy
-from django.http import HttpResponse, HttpResponseBadRequest
+from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseRedirect
 from django.shortcuts import redirect
+from django.template.loader import render_to_string
+from django.template import RequestContext
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.generic.base import TemplateView
@@ -15,6 +17,9 @@ import redis
 
 from sushibar.ccserverlib.services import ccserver_get_topic_tree, get_channel_status_bulk, activate_channel, ccserver_publish_channel
 from sushibar.runs.models import ContentChannel, ContentChannelRun, ChannelRunStage
+from sushibar.services.trello.api import trello_add_card_to_channel
+
+from .forms import ChannelCreateForm
 
 
 REDIS = redis.StrictRedis(host=settings.MMVP_REDIS_HOST,
@@ -107,8 +112,31 @@ class DashboardView(TemplateView):
     def get(self, request, *args, **kwargs):
         return super(DashboardView, self).get(request, *args, **kwargs)
 
+    def post(self, request):
+        # create a form instance and populate it with data from the request:
+        form = ChannelCreateForm(request.POST)
+        # check whether it's valid:
+        if form.is_valid():
+            channel = ContentChannel(
+                spec_sheet_url=form.cleaned_data['spec_sheet_url'],
+                chef_repo_url=form.cleaned_data['chef_repo'],
+                channel_id=form.cleaned_data['channel_id'],
+                name=form.cleaned_data['name'],
+            )
+            trello_add_card_to_channel(request, channel, form.cleaned_data['trello_url'])
+            return HttpResponse(json.dumps({
+                'success': True,
+                'redirect_url': '/channels/{}/'.format(channel.channel_id.hex)
+            }))
+        return HttpResponse(json.dumps({
+            'success': False,
+            'html': render_to_string("create_channel_modal.html", {'form': form}),
+        }))
+
+
     def get_context_data(self, **kwargs):
         context = super(DashboardView, self).get_context_data(**kwargs)
+        context['form'] = ChannelCreateForm()
         context['channels'] = []
 
         channels = ContentChannel.objects.all().order_by('name')
@@ -131,6 +159,17 @@ class DashboardView(TemplateView):
                 last_run = channel.runs.latest("created_at")
             except ContentChannelRun.DoesNotExist:
                 print("No runs for channel %s " % channel.name)
+                channel_data = {
+                    "channel": channel.name,
+                    "id": channel.channel_id.hex,
+                    "starred": self.request.user.is_authenticated and self.request.user.saved_channels.filter(channel_id=channel.channel_id).exists(),
+                    "status": "New",
+                    "spec_sheet_url": channel.spec_sheet_url,
+                    "chef_repo_url": channel.chef_repo_url,
+                }
+
+                context['channels'].append(channel_data)
+
                 continue
 
             try:
@@ -181,8 +220,6 @@ class DashboardView(TemplateView):
             context['channels'].append(channel_data)
 
         return context
-
-
 
 
 
@@ -261,6 +298,15 @@ class RunView(TemplateView):
         if self.search_by_channel:
             channel_id = uuid.UUID(kwargs.get('channelid', ''))
             channel = ContentChannel.objects.get(channel_id=channel_id)
+
+            if not channel.runs.exists():
+                context['channel_status'] = "New"
+                context['channel'] = channel
+                context['logged_in'] = not self.request.user.is_anonymous()
+                context['saved_icon_class'] = 'fa-star' if self.request.user in channel.followers.all() else 'fa-star-o'
+                context['pr_url'] = "{}/pulls".format(channel.chef_repo_url.rstrip('/'))
+                return context
+
             run = channel.runs.latest("created_at")
         else:
             run_id = uuid.UUID(kwargs.get('runid', ''))
