@@ -4,9 +4,10 @@ import json
 
 from django.conf import settings
 from django.contrib.admin.views.decorators import staff_member_required
-from django.http import Http404
+from django.http import Http404, HttpResponseBadRequest
 from django.utils import timezone
 from django.utils.decorators import method_decorator
+from django.views.generic.edit import FormView
 from rest_framework import permissions, status
 from rest_framework.generics import ListCreateAPIView
 from rest_framework.generics import RetrieveUpdateDestroyAPIView
@@ -21,7 +22,7 @@ from .serializers import ChannelRunStageCreateSerializer, ChannelRunStageSeriali
 from .serializers import ChannelRunProgressSerializer
 from .serializers import ContentChannelSaveToProfileSerializer
 from .serializers import ChannelControlSerializer
-from .utils import load_tree_for_channel, set_run_options
+from .utils import load_tree_for_channel, set_run_options, calculate_channel_id
 
 # REDIS connection #############################################################
 import redis
@@ -49,6 +50,7 @@ class ContentChannelDetail(RetrieveUpdateDestroyAPIView):
     queryset = ContentChannel.objects.all()
     serializer_class = ContentChannelSerializer
     lookup_field =  'channel_id'
+
 
 class ContentChannelSaveToProfile(APIView):
     """
@@ -97,6 +99,24 @@ class ContentChannelSaveTrelloUrl(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+class ContentChannelDelete(APIView):
+    """
+    Delete channel from sushibar
+    """
+    def post(self, request, channel_id, format=None):
+        """
+        Handle "delete_channel" ajax calls.
+        """
+        try:
+            channel = ContentChannel.objects.get(channel_id=channel_id)
+        except ContentChannel.DoesNotExist:
+            raise Http404
+
+        if channel.runs.exists():
+            raise HttpResponseBadRequest("Cannot delete activated channels")
+
+        channel.delete()
+        return Response({"message": "Deleted channel {}".format(channel_id)}, status=status.HTTP_200_OK)
 
 # CHANNEL RUNS #################################################################
 
