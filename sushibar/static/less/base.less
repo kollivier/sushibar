@@ -24,6 +24,7 @@
 @darkyellow: darkgoldenrod;
 @lightyellow: #ffff7d;
 @blue: #089DE3;
+@darkblue: #095f88;
 
 @navbar-bg-color: @darkgray;
 @bg-color: @lighttan;
@@ -56,6 +57,7 @@ body {
 	border-radius: 0px;
 	cursor: pointer;
 	border: 2px solid transparent;
+	font-family: inherit;
 	&:hover, &:active, &:focus {
 		text-decoration: none;
 		font-weight: bold;
@@ -122,13 +124,21 @@ body {
 	}
 }
 
+.link-blue {
+	.link-action;
+	color: @darkblue;
+}
+.link-red {
+	.link-action;
+	color: @red;
+}
 .link-green {
 	.link-action;
 	color: @green;
 }
 .link-red {
 	.link-action;
-	color: @darkred;
+	color: @darkred !important;
 }
 .link-yellow {
 	.link-action;
