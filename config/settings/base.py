@@ -306,3 +306,6 @@ TRELLO_API_KEY = get_env('TRELLO_API_KEY')
 TRELLO_TOKEN = get_env('TRELLO_TOKEN')
 TRELLO_BOARD = get_env('TRELLO_BOARD')
 
+
+LOCAL_DEV_DEFAULT_DOMAIN = None   # set to something like `92832de0.ngrok.io` for testing webhooks
+

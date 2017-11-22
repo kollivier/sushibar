@@ -62,7 +62,7 @@ def trello_create_webhook(request, channel, card_id):
     if channel.trello_webhook_id and not ContentChannel.objects.filter(trello_webhook_id=channel.trello_webhook_id).exists():
         delete_request("webhooks/{}".format(channel.trello_webhook_id))
 
-    domain = settings.DEFAULT_DOMAIN or request.META.get('HTTP_ORIGIN') or \
+    domain = settings.LOCAL_DEV_DEFAULT_DOMAIN or request.META.get('HTTP_ORIGIN') or \
             "http://{}".format(request.get_host() or \
             get_current_site(request).domain)
     callback = "{}/services/trello/{}/card_moved/".format(domain, channel.channel_id.hex)
