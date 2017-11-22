@@ -78,7 +78,7 @@ $(function() {
   // setup so CSRF token will be added to all POST requests
   $.ajaxSetup({
       beforeSend: function(xhr, settings) {
-          if (settings.type==="POST" && !this.crossDomain) {
+          if ((settings.type==="POST" || settings.type==="PUT") && !this.crossDomain) {
               xhr.setRequestHeader("X-CSRFToken", csrftoken);
           }
       }

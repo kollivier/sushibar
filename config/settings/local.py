@@ -96,3 +96,8 @@ MMVP_REDIS_TEST_DB = 1
 # ------------------------------------------------------------------------------
 
 DEFAULT_STUDIO_SERVER = get_env('DEFAULT_STUDIO_SERVER', 'https://develop.contentworkshop.learningequality.org')
+
+
+# Used for testing webhooks in Trello integration
+# set to something like `92832de0.ngrok.io`
+LOCAL_DEV_DEFAULT_DOMAIN = get_env('LOCAL_DEV_DEFAULT_DOMAIN', None)

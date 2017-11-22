@@ -27,7 +27,7 @@ class GoogleClient():
         """
         spreadsheet = self.client.create(title)
         spreadsheet.share(self.client.auth._service_account_email, perm_type='user', role='owner')
-        spreadsheet.share(EMAIL, perm_type='user', role='writer')
+        spreadsheet.share(EMAIL, perm_type='user', role='writer', notify=False)
         self.client.insert_permission(spreadsheet._id, None, perm_type='anyone', role='reader')
 
         return spreadsheet

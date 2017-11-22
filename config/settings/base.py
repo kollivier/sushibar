@@ -310,4 +310,5 @@ TRELLO_BOARD = get_env('TRELLO_BOARD')
 # Google integraion
 # ------------------------------------------------------------------------------
 GOOGLE_AUTH_JSON = "client_secret.json"
-DEFAULT_DOMAIN = None
+LOCAL_DEV_DEFAULT_DOMAIN = None   # set to something like `92832de0.ngrok.io` for testing webhooks
+

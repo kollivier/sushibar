@@ -65,7 +65,7 @@ def trello_create_webhook(request, channel, card_id):
     if channel.trello_webhook_id and not ContentChannel.objects.filter(trello_webhook_id=channel.trello_webhook_id).exists():
         delete_request("webhooks/{}".format(channel.trello_webhook_id))
 
-    domain = settings.DEFAULT_DOMAIN or request.META.get('HTTP_ORIGIN') or \
+    domain = settings.LOCAL_DEV_DEFAULT_DOMAIN or request.META.get('HTTP_ORIGIN') or \
             "http://{}".format(request.get_host() or \
             get_current_site(request).domain)
     callback = "{}/services/trello/{}/card_moved/".format(domain, channel.channel_id.hex)
@@ -77,15 +77,16 @@ def trello_create_webhook(request, channel, card_id):
 
     response.raise_for_status()
     channel.trello_webhook_url = callback
-    channel.trello_webhook_id = json.loads(response.content)['id']
+    channel.trello_webhook_id = json.loads(response.content.decode('utf-8'))['id']
     channel.save()
 
 def trello_get_list_name(channel):
     card_id = extract_id(channel.trello_url)
     response = get_request("cards/{}".format(card_id))
-    list_id = json.loads(response.content)['idList']
+    trello_data = json.loads(response.content.decode('utf-8'))
+    list_id = trello_data['idList']
     list_response = get_request("lists/{}".format(list_id))
-    return json.loads(list_response.content)['name']
+    return trello_data['name']
 
 def validate_trello_card(trello_url):
     card_id = extract_id(trello_url)
@@ -227,7 +228,6 @@ class TrelloAddChecklistItem(TrelloBaseView):
             return HttpResponseNotFound("Channel not found")
 
         return trello_add_checklist_item(channel, request.data['item'])
-
 
 class TrelloBaseMoveList(TrelloBaseView):
     """
