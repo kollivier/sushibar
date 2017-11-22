@@ -118,3 +118,33 @@
 	}
 
 }
+
+#channel-register-modal {
+	.modal-content { width: 525px; }
+	h5 { font-weight: bold; }
+	.register-field {
+		margin-bottom: 15px;
+		input[type='text'] {
+			width: 100%;
+		    padding: 1px 5px;
+		}
+		.errorfield input{
+			// border-color: @red;
+			background-color: @lightred;
+		}
+		.errorlist {
+			list-style: none;
+			color: @darkred;
+			font-size: 11pt;
+			margin: 0;
+		}
+	}
+	#create-channel-button {
+		.loading-text { display: none; }
+		.create-text { display: block; }
+		&:disabled {
+			.loading-text { display: block; }
+			.create-text { display: none; }
+		}
+	}
+}

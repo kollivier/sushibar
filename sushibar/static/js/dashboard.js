@@ -46,4 +46,43 @@ $(function() {
     matches.css("display", "block");
     $(".channel-count").text("Showing " + matches.length + " Channel" + ((matches.length === 1)? "..." : "s..."))
   });
+
+  $('#create-channel-form').on('submit', function() {
+    // $('#create-channel-form input, #create-channel-button').attr("disabled", "disabled");
+    $.ajax({
+        type: $(this).attr('method'),
+        url: this.action,
+        data: $(this).serialize(),
+        context: this,
+        success: function(data) {
+          data = JSON.parse(data);
+          if(data.success) {
+            window.location = data.redirect_url;
+          } else {
+            var form = $(data.html).find('#create-channel-form').html();
+            $('#create-channel-form').html(form);
+            $('#create-channel-form input, #create-channel-button').removeAttr("disabled");
+          }
+        }, error: function(data) {
+
+        }
+    });
+  });
+
+  $(".delete-new-channel").on('click', function() {
+    if(confirm("Are you sure you want to delete channel " + $(this).data('channel-name') + "?")) {
+      var channel_id = $(this).data('channel');
+      var url = "/api/channels/" + channel_id + "/delete_channel/";
+      $.ajax({
+          url: url,
+          method: "POST",
+          success: function(data) {
+            $("#item-" + channel_id).remove();
+          }, error: function(message) {
+            alert(message.responseText);
+          }
+      });
+    }
+
+  })
 });

@@ -16,7 +16,6 @@ from sushibar.services.trello import config
 TRELLO_API_KEY = settings.TRELLO_API_KEY
 TRELLO_TOKEN = settings.TRELLO_TOKEN
 TRELLO_BOARD = settings.TRELLO_BOARD
-TRELLO_REGEX = r'https{0,1}:\/\/trello.com\/c\/([0-9A-Za-z]{8})\/.*'
 TRELLO_URL = "https://api.trello.com/1/"
 
 # Trello Requests
@@ -63,7 +62,7 @@ def trello_create_webhook(request, channel, card_id):
     if channel.trello_webhook_id and not ContentChannel.objects.filter(trello_webhook_id=channel.trello_webhook_id).exists():
         delete_request("webhooks/{}".format(channel.trello_webhook_id))
 
-    domain = request.META.get('HTTP_ORIGIN') or \
+    domain = settings.DEFAULT_DOMAIN or request.META.get('HTTP_ORIGIN') or \
             "http://{}".format(request.get_host() or \
             get_current_site(request).domain)
     callback = "{}/services/trello/{}/card_moved/".format(domain, channel.channel_id.hex)
@@ -85,8 +84,39 @@ def trello_get_list_name(channel):
     list_response = get_request("lists/{}".format(list_id))
     return json.loads(list_response.content)['name']
 
+def validate_trello_card(trello_url):
+    card_id = extract_id(trello_url)
+    response = get_request("cards/{}".format(card_id))
+    if response.status_code == 200:
+        trello_data = json.loads(response.content.decode('utf-8'))
+        if trello_data['idBoard'] != TRELLO_BOARD:
+            return False
+    return response.status_code == 200
+
+def trello_add_card_to_channel(request, channel, trello_url):
+
+    # Check the url is formatted correctly
+    card_id = extract_id(trello_url)
+    if not card_id:
+        return HttpResponseBadRequest("Invalid id")
+
+    # Check the card is from the sushibar board
+    response = get_request("cards/{}".format(card_id))
+    if response.status_code == 200:
+        trello_data = json.loads(response.content.decode('utf-8'))
+        if trello_data['idBoard'] != TRELLO_BOARD:
+            return HttpResponseForbidden("Not authorized to access card")
+
+        # Save the url if it passes tests
+        channel.trello_url = trello_url
+        channel.save()
+        trello_create_webhook(request, channel, trello_data['id'])
+        return HttpResponse(response.content)
+    else:
+        return HttpResponseBadRequest(response.content.capitalize())
+
 def extract_id(url):
-    match = re.search(TRELLO_REGEX, url)
+    match = re.search(config.TRELLO_REGEX, url)
     return match and match.group(1)
 
 def format_datetime(dt):
@@ -141,25 +171,7 @@ class ContentChannelSaveTrelloUrl(TrelloBaseView):
             channel.save()
             return HttpResponse("Saved Trello URL")
 
-        # Check the url is formatted correctly
-        card_id = extract_id(trello_url)
-        if not card_id:
-            return HttpResponseBadRequest("Invalid id")
-
-        # Check the card is from the sushibar board
-        response = self.get_request("cards/{}".format(card_id))
-        if response.status_code == 200:
-            trello_data = json.loads(response.content.decode('utf-8'))
-            if trello_data['idBoard'] != TRELLO_BOARD:
-                return HttpResponseForbidden("Not authorized to access card")
-
-            # Save the url if it passes tests
-            channel.trello_url = trello_url
-            channel.save()
-            trello_create_webhook(request, channel, trello_data['id'])
-            return HttpResponse(response.content)
-        else:
-            return HttpResponseBadRequest(response.content.capitalize())
+        return trello_add_card_to_channel(request, channel, trello_url)
 
 class TrelloAddChecklistItem(TrelloBaseView):
     """
@@ -179,17 +191,15 @@ class TrelloAddChecklistItem(TrelloBaseView):
         card_id = extract_id(channel.trello_url)
         checklist_response = self.get_request("cards/{}/checklists".format(card_id))
         checklists = json.loads(checklist_response.content.decode('utf-8'))
-        checklist = None
 
         # If there are no checklists, create a new one
         # Otherwise, add to first list on the board
-        if not len(checklists):
-            create_response = self.post_request("cards/{}/checklists".format(card_id), data={"name": "Channel TODO"})
+        checklist = next((c for c in checklists if c['name'] == config.TRELLO_CHECKLIST_NAME), None)
+        if not checklist:
+            create_response = self.post_request("cards/{}/checklists".format(card_id), data={"name": config.TRELLO_CHECKLIST_NAME})
             if create_response.status_code != 200:
                 return HttpResponseBadRequest(create_response.content.capitalize())
             checklist = json.loads(create_response.content)
-        else:
-          checklist = checklists[0]
 
         # Format message with timestamp
         message = request.data['item']
@@ -274,10 +284,13 @@ class TrelloNotifyCardMove(TrelloBaseView):
 
         try:
             new_list = request.data['action']['data']['listAfter']['id']
+            old_list = request.data['action']['data']['listBefore']['id']
 
-            channel.run_needed = new_list == config.TRELLO_RUN_LIST_ID
-            channel.changes_needed = new_list == config.TRELLO_DEVELOPMENT_LIST_ID
-            channel.save()
+            # Only set if chef is not in initial stage
+            if old_list != config.TRELLO_READY_LIST_ID:
+                channel.run_needed = new_list == config.TRELLO_RUN_LIST_ID
+                channel.changes_needed = new_list == config.TRELLO_DEVELOPMENT_LIST_ID
+                channel.save()
 
             # TODO: Add logic for emailing developer here
         except KeyError:

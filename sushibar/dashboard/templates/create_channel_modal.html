@@ -1,0 +1,54 @@
+<div class="modal action-modal start-modal" id="channel-register-modal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Create New Channel</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="create-channel-form" method="post">
+          {% csrf_token %}
+          <h5>Details</h5>
+          <div class="row register-field">
+            <div class="col-12 text-right">{{form.name.errors}}</div>
+            <div class="col-3 text-right">{{form.name.label}}</div>
+            <div class="col-9{% if form.name.errors %} errorfield{% endif %}">{{form.name}}</div>
+          </div>
+          <div class="row register-field">
+            <div class="col-12 text-right">{{form.domain.errors}}</div>
+            <div class="col-3 text-right">{{form.domain.label}}</div>
+            <div class="col-9{% if form.domain.errors %} errorfield{% endif %}">{{form.domain}}</div>
+          </div>
+          <div class="row register-field">
+            <div class="col-12 text-right">{{form.source_id.errors}}</div>
+            <div class="col-3 text-right">{{form.source_id.label}}</div>
+            <div class="col-9{% if form.source_id.errors %} errorfield{% endif %}">{{form.source_id}}</div>
+          </div>
+          <hr/>
+          <h5>Links</h5>
+          <div class="row register-field">
+            <div class="col-12 text-right">{{form.chef_repo.errors}}</div>
+            <div class="col-3 text-right">{{form.chef_repo.label}}</div>
+            <div class="col-9{% if form.chef_repo.errors %} errorfield{% endif %}">{{form.chef_repo}}</div>
+          </div>
+          <div class="row register-field">
+            <div class="col-12 text-right">{{form.spec_sheet_url.errors}}</div>
+            <div class="col-3 text-right">{{form.spec_sheet_url.label}}</div>
+            <div class="col-9{% if form.spec_sheet_url.errors %} errorfield{% endif %}">{{form.spec_sheet_url}}</div>
+          </div>
+          <div class="row register-field">
+            <div class="col-12 text-right">{{form.trello_url.errors}}</div>
+            <div class="col-3 text-right">{{form.trello_url.label}}</div>
+            <div class="col-9{% if form.trello_url.errors %} errorfield{% endif %}">{{form.trello_url}}</div>
+          </div>
+          <div class="modal-footer">
+            <a class="link-gray" data-dismiss="modal">CANCEL</a>&nbsp;
+            <button type="submit" class="btn btn-green" id="create-channel-button"><span class="create-text">CREATE</span><span class="loading-text"><i class="fa fa-spinner fa-pulse fa-fw"></i> &nbsp;Processing...</span></button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

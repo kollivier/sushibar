@@ -146,7 +146,7 @@ function create_config(data) {
     }, 3000);
   }
   function trello_pending() {
-    $("#trello-alert").css("display", "none");
+    $(".trello-alert").css("display", "none");
     $("#trello-pending").css("display", "block");
   }
 
@@ -277,28 +277,32 @@ $(function() {
       // TODO: check if successful (what if user not logged in? redirect to login page?)
     }
   });
-  // Get chart data.
-  $.getJSON("/api/channels/" + channel_id + "/runs/", function(data) {
-    var myLineChart = new Chart(
-      $("#resource-chart")[0].getContext('2d'),
-      create_config(
-        data.filter(function(x) {
-          return x.resource_counts !== undefined && x.resource_counts !== null;
-        }).slice(0, 10)));
-  });
-  // Collapse content tree.
-  $('.content-tree > li a').click(function() {
-    $(this).parent().find('ul').slideToggle(100);
-  });
+
+  if (!$("#channel-run").hasClass("new-channel")) {
+    // Get chart data.
+    $.getJSON("/api/channels/" + channel_id + "/runs/", function(data) {
+      var myLineChart = new Chart(
+        $("#resource-chart")[0].getContext('2d'),
+        create_config(
+          data.filter(function(x) {
+            return x.resource_counts !== undefined && x.resource_counts !== null;
+          }).slice(0, 10)));
+    });
+    // Collapse content tree.
+    $('.content-tree > li a').click(function() {
+      $(this).parent().find('ul').slideToggle(100);
+    });
 
 
-  var hash = window.location.hash;
-  hash && $('.nav-link[href="' + hash + '"]').tab('show');
+    var hash = window.location.hash;
+    hash && $('.nav-link[href="' + hash + '"]').tab('show');
 
-  $('.nav-link').click(function(e) {
-    var new_hash = this['href'].substring(this['href'].indexOf('#')+1);
-    history.replaceState(undefined, undefined, "#" + new_hash);
-  });
+    $('.nav-link').click(function(e) {
+      var new_hash = this['href'].substring(this['href'].indexOf('#')+1);
+      history.replaceState(undefined, undefined, "#" + new_hash);
+    });
+  }
+
 
   $("#trello-link-input").on("keyup", update_trello_link);
   $("#trello-link-input").on("keydown", update_trello_link);
