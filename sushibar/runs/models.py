@@ -27,7 +27,7 @@ class ContentChannel(models.Model):
 
     # Trello-related fields
     trello_url = models.TextField(blank=True, null=True)
-    qa_sheet_url = models.TextField(blank=True, null=True)
+    qa_sheet_id = models.TextField(blank=True, null=True)
     spec_sheet_url = models.TextField(blank=True, null=True)
     chef_repo_url = models.TextField(blank=True, null=True)
     trello_webhook_url = models.TextField(blank=True, null=True)

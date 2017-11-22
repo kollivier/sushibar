@@ -306,3 +306,7 @@ TRELLO_API_KEY = get_env('TRELLO_API_KEY')
 TRELLO_TOKEN = get_env('TRELLO_TOKEN')
 TRELLO_BOARD = get_env('TRELLO_BOARD')
 
+
+# Google integraion
+# ------------------------------------------------------------------------------
+GOOGLE_AUTH_JSON = "client_secret.json"

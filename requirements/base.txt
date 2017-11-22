@@ -41,3 +41,7 @@ django-redis==4.8.0
 redis>=2.10.5
 
 requests==2.18.1
+
+# Authentication for Google API
+gspread==0.6.2
+google-api-python-client==1.6.4
