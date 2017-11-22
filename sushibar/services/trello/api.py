@@ -74,15 +74,16 @@ def trello_create_webhook(request, channel, card_id):
 
     response.raise_for_status()
     channel.trello_webhook_url = callback
-    channel.trello_webhook_id = json.loads(response.content)['id']
+    channel.trello_webhook_id = json.loads(response.content.decode('utf-8'))['id']
     channel.save()
 
 def trello_get_list_name(channel):
     card_id = extract_id(channel.trello_url)
     response = get_request("cards/{}".format(card_id))
-    list_id = json.loads(response.content)['idList']
+    trello_data = json.loads(response.content.decode('utf-8'))
+    list_id = trello_data['idList']
     list_response = get_request("lists/{}".format(list_id))
-    return json.loads(list_response.content)['name']
+    return trello_data['name']
 
 def validate_trello_card(trello_url):
     card_id = extract_id(trello_url)
@@ -199,7 +200,7 @@ class TrelloAddChecklistItem(TrelloBaseView):
             create_response = self.post_request("cards/{}/checklists".format(card_id), data={"name": config.TRELLO_CHECKLIST_NAME})
             if create_response.status_code != 200:
                 return HttpResponseBadRequest(create_response.content.capitalize())
-            checklist = json.loads(create_response.content)
+            checklist = json.loads(create_response.content.decode('utf-8'))
 
         # Format message with timestamp
         message = request.data['item']
