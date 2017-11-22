@@ -5,7 +5,7 @@ from sushibar.runs.utils import calculate_channel_id
 from sushibar.services.trello.api import validate_trello_card
 from sushibar.services.trello.config import TRELLO_REGEX
 
-GITHUB_REGEX = r'https?://github.com/learningequality/.+'
+GITHUB_REGEX = r'https?://github.com/[^/]+/.+'
 GOOGLE_REGEX = r'https?://docs\.google\.com/document/d/.+'
 
 class ChannelCreateForm(forms.Form):
