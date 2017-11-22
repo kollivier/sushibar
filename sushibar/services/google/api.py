@@ -3,6 +3,7 @@ import httplib2
 import json
 import requests
 
+from apiclient import discovery
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseNotFound
 from oauth2client.service_account import ServiceAccountCredentials
@@ -10,6 +11,7 @@ from rest_framework.views import APIView
 
 GOOGLE_QA_TEMPLATE_ID = "11Wxms1ZcAI_stQ1L0w1G2vC9shPDf67u1VIERnz93YM"
 EMAIL = "jordan@learningequality.org" # TODO: Insert your email here to give yourself access
+TARGET_FOLDER_ID = "1dwZwAjRTkPYeOipdYSsCsLj2l1CjDYg2"
 
 def get_credentials():
     scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
@@ -19,6 +21,8 @@ class GoogleClient():
     def __init__(self, *args, **kwargs):
         credentials = get_credentials()
         self.client = gspread.authorize(credentials)
+        http = credentials.authorize(httplib2.Http())
+        self.service = discovery.build('drive', 'v3', http=http)
 
     def create(self, title):
         """ create: creates a spreadsheet with the given title
@@ -52,6 +56,19 @@ class GoogleClient():
 
         pass
 
+    def move(self, spreadsheet, target_folder_id):
+        """ move: move sheet with spreadsheet_id to target folder id
+            Args:
+                spreadsheet_id (Spreadsheet) Spreadsheet id to move
+                target_folder_id (str) Folder to move spreadsheet to
+            Returns: None
+        """
+        # Retrieve the existing parents to remove
+        file = self.service.files().get(fileId=spreadsheet._id, fields='parents').execute();
+        previous_parents = ",".join(file.get('parents'))
+        # Move the file to the new folder
+        file = self.service.files().update(fileId=spreadsheet_id, addParents=target_folder_id, removeParents=previous_parents, fields='id, parents').execute()
+
 
 def generate_qa_sheet(sheet_name, qa_sheet_id=None):
     """ generate_qa_sheet: creates qa sheet copy
@@ -67,4 +84,5 @@ def generate_qa_sheet(sheet_name, qa_sheet_id=None):
         target = client.create(sheet_name)          # Create new template with channel name + QA
     template = client.get(GOOGLE_QA_TEMPLATE_ID)    # Load template spreadsheet
     client.copy(template, target)                   # Copy template into spreadsheet
+    client.move(target, TARGET_FOLDER_ID)           # Move sheet to target
     return target._id
