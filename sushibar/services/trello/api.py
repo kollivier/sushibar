@@ -52,6 +52,9 @@ def trello_move_card(channel, list_id):
 def trello_move_card_to_run_list(channel):
     return trello_move_card(channel, config.TRELLO_RUN_LIST_ID)
 
+def trello_move_card_to_qa_list(channel):
+    return trello_move_card(channel, config.TRELLO_QA_LIST_ID)
+
 def trello_move_card_to_done_list(channel):
     return trello_move_card(channel, config.TRELLO_DONE_LIST_ID)
 
@@ -114,6 +117,42 @@ def trello_add_card_to_channel(request, channel, trello_url):
         return HttpResponse(response.content)
     else:
         return HttpResponseBadRequest(response.content.capitalize())
+
+def trello_add_checklist_item(channel, message):
+     # Get any checklists that are on the card
+    card_id = extract_id(channel.trello_url)
+    checklist_response = get_request("cards/{}/checklists".format(card_id))
+    checklists = json.loads(checklist_response.content.decode('utf-8'))
+
+    # If there are no checklists, create a new one
+    # Otherwise, add to first list on the board
+    checklist = next((c for c in checklists if c['name'] == config.TRELLO_CHECKLIST_NAME), None)
+    if not checklist:
+        create_response = post_request("cards/{}/checklists".format(card_id), data={"name": config.TRELLO_CHECKLIST_NAME})
+        if create_response.status_code != 200:
+            return HttpResponseBadRequest(create_response.content.capitalize())
+        checklist = json.loads(create_response.content)
+
+    # Format message with timestamp
+    current_timestamp = format_datetime(datetime.datetime.now())
+    formatted_message = "{} (requested {})".format(message, current_timestamp)
+
+    # If item is already in checklist, update the time and uncheck it
+    # Otherwise, create a new item
+    match = next((i for i in checklist['checkItems'] if i['name'].startswith(message)), None)
+    if match:
+        update_url = "cards/{}/checkItem/{}".format(card_id, match['id'])
+        response = put_request(update_url, data={"name": formatted_message, "state": "incomplete"})
+        if response.status_code != 200:
+            return HttpResponseBadRequest(response.content.capitalize())
+    else:
+        create_url = "checklists/{}/checkItems".format(checklist['id'])
+        response = post_request(create_url, data={"name": formatted_message, "checked": "false"})
+        if response.status_code != 200:
+            return HttpResponseBadRequest(response.content.capitalize())
+
+    return HttpResponse("Added checklist item '{}'".format(formatted_message))
+
 
 def extract_id(url):
     match = re.search(config.TRELLO_REGEX, url)
@@ -187,40 +226,7 @@ class TrelloAddChecklistItem(TrelloBaseView):
         except ContentChannel.DoesNotExist:
             return HttpResponseNotFound("Channel not found")
 
-        # Get any checklists that are on the card
-        card_id = extract_id(channel.trello_url)
-        checklist_response = self.get_request("cards/{}/checklists".format(card_id))
-        checklists = json.loads(checklist_response.content.decode('utf-8'))
-
-        # If there are no checklists, create a new one
-        # Otherwise, add to first list on the board
-        checklist = next((c for c in checklists if c['name'] == config.TRELLO_CHECKLIST_NAME), None)
-        if not checklist:
-            create_response = self.post_request("cards/{}/checklists".format(card_id), data={"name": config.TRELLO_CHECKLIST_NAME})
-            if create_response.status_code != 200:
-                return HttpResponseBadRequest(create_response.content.capitalize())
-            checklist = json.loads(create_response.content)
-
-        # Format message with timestamp
-        message = request.data['item']
-        current_timestamp = format_datetime(datetime.datetime.now())
-        formatted_message = "{} (requested {})".format(message, current_timestamp)
-
-        # If item is already in checklist, update the time and uncheck it
-        # Otherwise, create a new item
-        match = next((i for i in checklist['checkItems'] if i['name'].startswith(message)), None)
-        if match:
-            update_url = "cards/{}/checkItem/{}".format(card_id, match['id'])
-            response = self.put_request(update_url, data={"name": formatted_message, "state": "incomplete"})
-            if response.status_code != 200:
-                return HttpResponseBadRequest(response.content.capitalize())
-        else:
-            create_url = "checklists/{}/checkItems".format(checklist['id'])
-            response = self.post_request(create_url, data={"name": formatted_message, "checked": "false"})
-            if response.status_code != 200:
-                return HttpResponseBadRequest(response.content.capitalize())
-
-        return HttpResponse("Added checklist item '{}'".format(formatted_message))
+        return trello_add_checklist_item(channel, request.data['item'])
 
 
 class TrelloBaseMoveList(TrelloBaseView):
