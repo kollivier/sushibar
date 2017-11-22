@@ -175,7 +175,15 @@ function create_config(data) {
   }
 
   function trello_flag_channel_for_qa() {
-    trello_move_card_to_list("flag_for_qa", "Flagged channel for QA", trello_pending, trello_success, trello_error);
+    trello_pending();
+    $.ajax({
+      url: "/api/channels/" + channel_id + "/flag_for_qa/",
+      type: "POST",
+      success: function(data) {
+        trello_success("Flagged channel for QA");
+      },
+      error: trello_error
+    });
   }
 
   function trello_flag_channel_for_publish() {

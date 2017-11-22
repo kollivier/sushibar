@@ -35,9 +35,11 @@
           <span class="alert-prompt">
             <i class="fa fa-exclamation-circle"></i> &nbsp;
             {% if channel.run_needed %}<strong>Run Requested</strong>
-            {% else %}<strong>Changes Requested</strong> &nbsp;Please review the QA sheet and run this chef after making the requested changes
+            {% else %}<strong>Changes Requested</strong> &nbsp;Please review the QA sheet and update this chef
             {% endif %}
-            <a class="pull-right trello-alert-mark-done">DONE</a>
+            {% if channel.run_needed %}<a class="pull-right trello-alert-mark-done">DONE</a>
+            {% else %}<a class="pull-right" href="#feedback">VIEW FEEDBACK</a>
+            {% endif %}
             <a class="pull-right trello-alert-flag-for-qa">FLAG FOR QA</a>
             <!-- <a class="pull-right trello-link-to-qa">VIEW FEEDBACK</a> -->
           </span>
@@ -79,8 +81,9 @@
     <nav class="row nav nav-pills nav-fill sushi-tabs" id="run-tabs" role="tablist">
       <a role="presentation" class="col-3 nav-item nav-link show active" data-toggle="tab" href="#summary" role="tab" aria-controls="summary" aria-expanded="true">SUMMARY</a>
       <a role="presentation" class="col-3 nav-item nav-link" data-toggle="tab" href="#tree" role="tab" aria-controls="tree" aria-expanded="true">CONTENT TREE</a>
-      <a role="presentation" class="col-3 nav-item nav-link" data-toggle="tab" href="#resources" role="tab" aria-controls="resources" aria-expanded="true">RESOURCES</a>
-      <a role="presentation" class="col-3 nav-item nav-link" data-toggle="tab" href="#logs" role="tab" aria-controls="logs" aria-expanded="true">{% if run.state == 'FAILURE' %}<i class="fa fa-exclamation-circle"></i>&nbsp;&nbsp;{% endif %}LOGS</a>
+      <a role="presentation" class="col-2 nav-item nav-link" data-toggle="tab" href="#resources" role="tab" aria-controls="resources" aria-expanded="true">RESOURCES</a>
+      <a role="presentation" class="col-2 nav-item nav-link" data-toggle="tab" href="#logs" role="tab" aria-controls="logs" aria-expanded="true">{% if run.state == 'FAILURE' %}<i class="fa fa-exclamation-circle"></i>&nbsp;&nbsp;{% endif %}LOGS</a>
+      <a role="presentation" class="col-2 nav-item nav-link" data-toggle="tab" href="#feedback" role="tab" aria-controls="feedback" aria-expanded="true">FEEDBACK</a>
     </nav>
     <div class="tab-content">
       <div class="col-12 tab-pane show active" id="summary" role="tabpanel" aria-labelledby="summary">
@@ -180,6 +183,14 @@
             </div>
           </div>
         </div>
+      </div>
+      <div class="col-12 tab-pane" id="feedback" role="tabpanel" aria-labelledby="feedback">
+        {% if channel.qa_sheet_id %}
+        <a class="link-blue pull-right" target="_blank" href="https://docs.google.com/spreadsheets/d/{{channel.qa_sheet_id}}"><i class="fa fa-google"></i> Open in Drive</a>
+        <iframe src="https://docs.google.com/a/learningequality.org/spreadsheets/d/{{channel.qa_sheet_id}}/htmlembed" id="feedback-embed"></iframe>
+        {% else %}
+        <h3 class="text-center" id="qa-prompt">No feedback yet: flag channel for QA to generate spreadsheet when chef is ready</h3>
+        {% endif %}
       </div>
     </div>
   {% endif %}
