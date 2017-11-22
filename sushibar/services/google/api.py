@@ -10,7 +10,6 @@ from oauth2client.service_account import ServiceAccountCredentials
 from rest_framework.views import APIView
 
 GOOGLE_QA_TEMPLATE_ID = "11Wxms1ZcAI_stQ1L0w1G2vC9shPDf67u1VIERnz93YM"
-EMAIL = "jordan@learningequality.org" # TODO: Insert your email here to give yourself access
 TARGET_FOLDER_ID = "1dwZwAjRTkPYeOipdYSsCsLj2l1CjDYg2"
 
 def get_credentials():
@@ -31,7 +30,6 @@ class GoogleClient():
         """
         spreadsheet = self.client.create(title)
         spreadsheet.share(self.client.auth._service_account_email, perm_type='user', role='owner')
-        spreadsheet.share(EMAIL, perm_type='user', role='writer', notify=False)
         self.client.insert_permission(spreadsheet._id, None, perm_type='anyone', role='reader')
 
         return spreadsheet
@@ -67,7 +65,7 @@ class GoogleClient():
         file = self.service.files().get(fileId=spreadsheet._id, fields='parents').execute();
         previous_parents = ",".join(file.get('parents'))
         # Move the file to the new folder
-        file = self.service.files().update(fileId=spreadsheet_id, addParents=target_folder_id, removeParents=previous_parents, fields='id, parents').execute()
+        file = self.service.files().update(fileId=spreadsheet._id, addParents=target_folder_id, removeParents=previous_parents, fields='id, parents').execute()
 
 
 def generate_qa_sheet(sheet_name, qa_sheet_id=None):
@@ -85,4 +83,5 @@ def generate_qa_sheet(sheet_name, qa_sheet_id=None):
     template = client.get(GOOGLE_QA_TEMPLATE_ID)    # Load template spreadsheet
     client.copy(template, target)                   # Copy template into spreadsheet
     client.move(target, TARGET_FOLDER_ID)           # Move sheet to target
+
     return target._id
