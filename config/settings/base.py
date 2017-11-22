@@ -310,3 +310,4 @@ TRELLO_BOARD = get_env('TRELLO_BOARD')
 # Google integraion
 # ------------------------------------------------------------------------------
 GOOGLE_AUTH_JSON = "client_secret.json"
+DEFAULT_DOMAIN = None
