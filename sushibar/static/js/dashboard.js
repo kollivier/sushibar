@@ -47,8 +47,9 @@ $(function() {
     $(".channel-count").text("Showing " + matches.length + " Channel" + ((matches.length === 1)? "..." : "s..."))
   });
 
-  $('#create-channel-form').on('submit', function() {
-    // $('#create-channel-form input, #create-channel-button').attr("disabled", "disabled");
+  $('#create-channel-form').on('submit', function(event) {
+    event.preventDefault();
+    $('#create-channel-form input, #create-channel-button').attr("disabled", "disabled");
     $.ajax({
         type: $(this).attr('method'),
         url: this.action,
