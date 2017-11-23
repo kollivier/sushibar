@@ -129,6 +129,8 @@ class DashboardView(TemplateView):
                 chef_repo_url=form.cleaned_data['chef_repo'],
                 channel_id=form.cleaned_data['channel_id'],
                 name=form.cleaned_data['name'],
+                source_domain=form.cleaned_data['domain'],
+                source_id=form.cleaned_data['source_id'],
             )
             trello_add_card_to_channel(request, channel, form.cleaned_data['trello_url'])
             return HttpResponse(json.dumps({
