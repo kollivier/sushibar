@@ -117,6 +117,13 @@ class DashboardView(TemplateView):
         form = ChannelCreateForm(request.POST)
         # check whether it's valid:
         if form.is_valid():
+            if ContentChannel.objects.filter(channel_id=form.cleaned_data['channel_id']).exists():
+                form.add_error('domain', 'Channel with domain and source ID already exists')
+                return HttpResponse(json.dumps({
+                    'success': False,
+                    'html': render_to_string("create_channel_modal.html", {'form': form}),
+                }))
+
             channel = ContentChannel(
                 spec_sheet_url=form.cleaned_data['spec_sheet_url'],
                 chef_repo_url=form.cleaned_data['chef_repo'],

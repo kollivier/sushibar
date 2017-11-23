@@ -49,7 +49,8 @@ $(function() {
 
   $('#create-channel-form').on('submit', function(event) {
     event.preventDefault();
-    $('#create-channel-form input, #create-channel-button').attr("disabled", "disabled");
+    $("#channel-register-error").css("display", "none");
+    $('#create-channel-button').attr("disabled", "disabled");
     $.ajax({
         type: $(this).attr('method'),
         url: this.action,
@@ -65,7 +66,8 @@ $(function() {
             $('#create-channel-form input, #create-channel-button').removeAttr("disabled");
           }
         }, error: function(data) {
-
+          $("#channel-register-error").text(data.responseText).css("display", "block");
+          $('#create-channel-form input, #create-channel-button').removeAttr("disabled");
         }
     });
   });
