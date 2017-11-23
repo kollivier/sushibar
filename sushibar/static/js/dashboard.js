@@ -44,7 +44,7 @@ $(function() {
     var matches = $("." + ($(this).val() || "channel-row"));
     $(".channel-row").css("display", "none");
     matches.css("display", "block");
-    $(".channel-count").text("Showing " + matches.length + " Channel" + ((matches.length === 1)? "..." : "s..."));
+    update_channel_count();
   });
 
   $('#create-channel-form').on('submit', function(event) {
@@ -81,8 +81,7 @@ $(function() {
           method: "POST",
           success: function(data) {
             $("#item-" + channel_id).remove();
-            var matches = $(".channel-row:visible");
-            $(".channel-count").text("Showing " + matches.length + " Channel" + ((matches.length === 1)? "..." : "s..."));
+            update_channel_count();
           }, error: function(message) {
             alert(message.responseText);
           }
@@ -91,3 +90,9 @@ $(function() {
 
   })
 });
+
+function update_channel_count() {
+  var matches = $(".channel-row:visible");
+  $(".channel-count").text("Showing " + matches.length + " Channel" + ((matches.length === 1)? "..." : "s..."));
+  $(".default-item").css('display', (matches.length)? 'none' : 'block');
+}
