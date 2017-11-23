@@ -44,7 +44,7 @@ $(function() {
     var matches = $("." + ($(this).val() || "channel-row"));
     $(".channel-row").css("display", "none");
     matches.css("display", "block");
-    $(".channel-count").text("Showing " + matches.length + " Channel" + ((matches.length === 1)? "..." : "s..."))
+    $(".channel-count").text("Showing " + matches.length + " Channel" + ((matches.length === 1)? "..." : "s..."));
   });
 
   $('#create-channel-form').on('submit', function(event) {
@@ -81,6 +81,8 @@ $(function() {
           method: "POST",
           success: function(data) {
             $("#item-" + channel_id).remove();
+            var matches = $(".channel-row:visible");
+            $(".channel-count").text("Showing " + matches.length + " Channel" + ((matches.length === 1)? "..." : "s..."));
           }, error: function(message) {
             alert(message.responseText);
           }
