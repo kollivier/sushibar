@@ -41,7 +41,7 @@
 	    border-radius: 0px;
 	    margin: 5px;
 		flex: auto;
-	    &.trello-action-alert {
+	    &.trello-action-alert, &.trello-card-alert {
 	    	color: @darkyellow;
 	    	background-color: @mediumyellow;
 	    	&.disabled { opacity: 0.8; }
@@ -195,7 +195,7 @@
 
 #channel-info-modal{
 	.modal-content { width: 565px; }
-	.trello-icon{ color: #1078BA; }
+	.trello-icon{ color: @trelloblue; }
 	.channel-id-btn, .channel_name {
 		background-color: transparent;
 		color: @darkgray;

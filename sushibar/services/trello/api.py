@@ -66,16 +66,23 @@ def trello_create_webhook(request, channel, card_id):
             "http://{}".format(request.get_host() or \
             get_current_site(request).domain)
     callback = "{}/services/trello/{}/card_moved/".format(domain, channel.channel_id.hex)
+    channel_with_same_card = ContentChannel.objects.filter(trello_webhook_url=callback).exclude(trello_webhook_id=None).first()
     response = post_request('webhooks/', data={'idModel': card_id, 'description': "card-update", 'callbackURL': callback})
 
-    # Raises 400 when webhook combination already exists
-    if response.status_code == 400:
-        return
+    if channel_with_same_card:
+        channel.trello_webhook_url = channel_with_same_card.trello_webhook_url
+        channel.trello_webhook_id = channel_with_same_card.trello_webhook_id
 
-    response.raise_for_status()
-    channel.trello_webhook_url = callback
-    channel.trello_webhook_id = json.loads(response.content.decode('utf-8'))['id']
+    # Raises 400 when webhook combination already exists
+    elif response.status_code == 400:
+        channel.trello_webhook_url = callback
+    else:
+        response.raise_for_status()
+        channel.trello_webhook_url = callback
+        channel.trello_webhook_id = json.loads(response.content.decode('utf-8'))['id']
+
     channel.save()
+
 
 def trello_get_list_name(channel):
     card_id = extract_id(channel.trello_url)
@@ -274,7 +281,7 @@ class TrelloNotifyCardMove(TrelloBaseView):
     Update status of channel based on Trello list
     """
 
-    def post(self, request, channel_id):
+    def handle_move(self, request, channel_id):
         """
         Handle card moves from Trello (webhook)
         """
@@ -291,13 +298,20 @@ class TrelloNotifyCardMove(TrelloBaseView):
             if old_list != config.TRELLO_READY_LIST_ID:
                 channel.run_needed = new_list == config.TRELLO_RUN_LIST_ID
                 channel.changes_needed = new_list == config.TRELLO_DEVELOPMENT_LIST_ID
-                channel.save()
+            channel.new_run_complete = False
+            channel.save()
 
             # TODO: Add logic for emailing developer here
         except KeyError:
             pass
 
         return HttpResponse("")
+
+    def post(self, request, channel_id):
+        return self.handle_move(request, channel_id)
+
+    def put(self, request, channel_id):
+        return self.handle_move(request, channel_id)
 
     def head(self, request, channel_id):
         return HttpResponse("Success!")
