@@ -185,9 +185,12 @@ function create_config(data) {
       url: "/api/channels/" + channel_id + "/flag_for_qa/",
       type: "POST",
       success: function(data) {
+        trello_success("Flagged channel for QA");
+        $("#feedback-embed").attr("src", "https://docs.google.com/a/learningequality.org/spreadsheets/d/" + data.qa_sheet_id + "/htmlembed")
+        $("#feedback-embed-wrapper").removeClass("hidden");
+        $("#feedback-prompt-wrapper").addClass("hidden");
         history.replaceState(undefined, undefined, "#feedback");
         $('.nav-link[href="#feedback"]').tab('show');
-        trello_success("Flagged channel for QA");
       },
       error: trello_error
     });

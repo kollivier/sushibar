@@ -125,7 +125,7 @@ class ContentChannelFlagForQA(APIView):
         response = trello_move_card_to_qa_list(channel)
         response.raise_for_status()
 
-        return Response({"success": True}, status=status.HTTP_200_OK)
+        return Response({"success": True, "qa_sheet_id": channel.qa_sheet_id}, status=status.HTTP_200_OK)
 
 
 class ContentChannelDelete(APIView):
