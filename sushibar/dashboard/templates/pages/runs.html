@@ -26,29 +26,39 @@
         </div>
       </div>
       <div id="alert-area" class="row">
-        {% if channel.run_needed or channel.changes_needed %}
-        <div class="alert col-12 trello-action-error alert-danger hidden" role="alert"></div>
-        <div class="alert col-12 trello-action-success alert-success hidden" role="alert">
-          <b class="text">DONE</b><span class="pull-right fa fa-check"></span>
-        </div>
-        <div class="alert col-12 trello-action-alert" role="alert">
+        {% if channel.run_needed or channel.changes_needed or channel.new_run_complete %}
+          <div class="alert col-12 trello-action-error alert-danger hidden" role="alert"></div>
+          <div class="alert col-12 trello-action-success alert-success hidden" role="alert">
+            <b class="text">DONE</b><span class="pull-right fa fa-check"></span>
+          </div>
+          <div class="alert col-12 trello-action-alert {% if not channel.trello_url %}hidden{% endif %}" role="alert">
+            <span class="alert-prompt">
+              <i class="fa fa-exclamation-circle"></i> &nbsp;
+              {% if channel.changes_needed %}<strong>Changes Requested</strong> &nbsp;Please review the QA sheet and update this chef
+              {% else %}{% if channel.run_needed %}<strong>Run Requested</strong>
+              {% else %}<strong>New Run Detected</strong>
+              {% endif %}{% endif %}
+              {% if channel.changes_needed %}
+                <a class="pull-right" href="#feedback">VIEW FEEDBACK</a>
+              {% else %}
+                <a class="pull-right trello-alert-mark-done">DONE</a>
+                <a class="pull-right trello-alert-request-publish">REQUEST PUBLISH</a>
+              {% endif %}
+              <a class="pull-right trello-alert-flag-for-qa">FLAG FOR QA</a>
+            </span>
+            <span class="alert-processing hidden">
+              <b>PROCESSING...</b>
+              <i class="fa fa-spinner fa-pulse fa-fw pull-right"></i>
+            </span>
+          </div>
+        {% endif %}
+        <div class="alert col-12 trello-card-alert {% if channel.trello_url %}hidden{% endif %}" role="alert">
           <span class="alert-prompt">
             <i class="fa fa-exclamation-circle"></i> &nbsp;
-            {% if channel.run_needed %}<strong>Run Requested</strong>
-            {% else %}<strong>Changes Requested</strong> &nbsp;Please review the QA sheet and update this chef
-            {% endif %}
-            {% if channel.run_needed %}<a class="pull-right trello-alert-mark-done">DONE</a>
-            {% else %}<a class="pull-right" href="#feedback">VIEW FEEDBACK</a>
-            {% endif %}
-            <a class="pull-right trello-alert-flag-for-qa">FLAG FOR QA</a>
-            <!-- <a class="pull-right trello-link-to-qa">VIEW FEEDBACK</a> -->
-          </span>
-          <span class="alert-processing hidden">
-            <b>PROCESSING...</b>
-            <i class="fa fa-spinner fa-pulse fa-fw pull-right"></i>
+            <strong>No Trello card found</strong>
+            <a class="pull-right" data-toggle="modal" data-target="#channel-info-modal">ADD CARD</a>
           </span>
         </div>
-        {% endif %}
       </div>
     </div>
   </div>

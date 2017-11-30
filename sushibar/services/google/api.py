@@ -62,8 +62,8 @@ class GoogleClient():
             Returns: None
         """
         # Retrieve the existing parents to remove
-        file = self.service.files().get(fileId=spreadsheet._id, fields='parents').execute();
-        previous_parents = ",".join(file.get('parents'))
+        file = self.service.files().get(fileId=spreadsheet._id, fields='parents').execute()
+        previous_parents = ",".join(file.get('parents') or [])
         # Move the file to the new folder
         file = self.service.files().update(fileId=spreadsheet._id, addParents=target_folder_id, removeParents=previous_parents, fields='id, parents').execute()
 

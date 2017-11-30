@@ -8,6 +8,7 @@
 	    color: @gray-300;
 	    font-style: italic;
 	    font-weight: bold;
+	    display: none;
 	}
     .row {
     	padding: 10px 0px;
@@ -59,6 +60,7 @@
 		}
 		.changes-needed-icon { cursor: pointer; color: @red;}
 		.run-needed-icon { cursor: pointer; color: @yellow;}
+		.card-missing-icon { cursor: pointer; color: @trelloblue; }
 		.no-request-icon { color: transparent; }
 		.channel_name {
 			color: @darkgray;
@@ -122,6 +124,7 @@
 #channel-register-modal {
 	.modal-content { width: 525px; }
 	h5 { font-weight: bold; }
+	#channel-register-error { display: none; }
 	.register-field {
 		margin-bottom: 15px;
 		input[type='text'] {

@@ -253,6 +253,8 @@ class ChannelRunStageListCreate(APIView):
                 run = ContentChannelRun.objects.get(run_id=run_id)
                 load_tree_for_channel(run)
                 set_run_options(run)
+                run.channel.new_run_complete = True
+                run.channel.save()
 
             # TODO: cleanup dict in redis under name `run_id` on FINISHED stage
             response_serializer = ChannelRunStageSerializer(run_stage)
