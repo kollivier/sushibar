@@ -1,4 +1,4 @@
-const TRELLO_REGEX = /https{0,1}:\/\/trello.com\/c\/([0-9A-Za-z]{8})\/.*/;
+const TRELLO_REGEX = /^https{0,1}:\/\/trello.com\/c\/([0-9A-Za-z]{8})\/[^\/]*$/;
 
 function format_date(run) {
   return moment(run["created_at"]).format("MMM D");
