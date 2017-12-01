@@ -24,6 +24,9 @@ from .serializers import ContentChannelSaveToProfileSerializer
 from .serializers import ChannelControlSerializer
 from .utils import load_tree_for_channel, set_run_options, calculate_channel_id
 
+from sushibar.services.trello.api import trello_move_card_to_qa_list, trello_add_checklist_item
+from sushibar.services.google.api import generate_qa_sheet
+
 # REDIS connection #############################################################
 import redis
 REDIS = redis.StrictRedis(host=settings.MMVP_REDIS_HOST,
@@ -98,6 +101,32 @@ class ContentChannelSaveTrelloUrl(APIView):
             channel.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class ContentChannelFlagForQA(APIView):
+    """
+    Flag channel for QA
+    """
+    def post(self, request, channel_id, format=None):
+        """
+        Handle "flag_for_qa" ajax calls.
+        """
+        try:
+            channel = ContentChannel.objects.get(channel_id=channel_id)
+        except ContentChannel.DoesNotExist:
+            raise Http404
+
+        # TODO: Don't generate if channel.qa_sheet_id already exists!
+        channel.qa_sheet_id = generate_qa_sheet(channel.name + " QA", qa_sheet_id=channel.qa_sheet_id)
+        channel.save()
+
+        message = "Fill out QA sheet {}".format("https://docs.google.com/spreadsheets/d/{}/edit".format(channel.qa_sheet_id))
+        trello_response = trello_add_checklist_item(channel, message)
+
+        response = trello_move_card_to_qa_list(channel)
+        response.raise_for_status()
+
+        return Response({"success": True, "qa_sheet_id": channel.qa_sheet_id}, status=status.HTTP_200_OK)
+
 
 class ContentChannelDelete(APIView):
     """

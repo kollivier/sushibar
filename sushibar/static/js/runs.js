@@ -1,4 +1,4 @@
-const TRELLO_REGEX = /https{0,1}:\/\/trello.com\/c\/([0-9A-Za-z]{8})\/.*/;
+const TRELLO_REGEX = /^https{0,1}:\/\/trello.com\/c\/([0-9A-Za-z]{8})\/[^\/]*$/;
 
 function format_date(run) {
   return moment(run["created_at"]).format("MMM D");
@@ -67,6 +67,7 @@ function create_config(data) {
     }
   };
 }
+
 
 
 
@@ -179,7 +180,20 @@ function create_config(data) {
   }
 
   function trello_flag_channel_for_qa() {
-    trello_move_card_to_list("flag_for_qa", "Flagged channel for QA", trello_pending, trello_success, trello_error);
+    trello_pending();
+    $.ajax({
+      url: "/api/channels/" + channel_id + "/flag_for_qa/",
+      type: "POST",
+      success: function(data) {
+        trello_success("Flagged channel for QA");
+        $("#feedback-embed").attr("src", "https://docs.google.com/a/learningequality.org/spreadsheets/d/" + data.qa_sheet_id + "/htmlembed")
+        $("#feedback-embed-wrapper").removeClass("hidden");
+        $("#feedback-prompt-wrapper").addClass("hidden");
+        history.replaceState(undefined, undefined, "#feedback");
+        $('.nav-link[href="#feedback"]').tab('show');
+      },
+      error: trello_error
+    });
   }
 
   function trello_flag_channel_for_publish() {

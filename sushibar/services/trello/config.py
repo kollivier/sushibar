@@ -1,4 +1,4 @@
-TRELLO_REGEX = r'https{0,1}:\/\/trello.com\/c\/([0-9A-Za-z]{8})\/.*'
+TRELLO_REGEX = r'^https{0,1}:\/\/trello.com\/c\/([0-9A-Za-z]{8})\/[^\/]*$'
 TRELLO_RUN_LIST_ID = "5a0b36d3e03ed8aa0e5cd1d0"
 TRELLO_QA_LIST_ID = "5a0a12148b852d3e28fcd12c"
 TRELLO_READY_LIST_ID = "5a0a0ffc7326a2e7bbdb5a5d"
