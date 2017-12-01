@@ -196,7 +196,7 @@
       </div>
       <div class="col-12 tab-pane" id="feedback" role="tabpanel" aria-labelledby="feedback">
         <div class="{% if not channel.qa_sheet_id %}hidden{% endif %}" id="feedback-embed-wrapper">
-          <a class="link-blue" id="refresh-feedback-embed"><i class="fa fa-refresh"></i> Refresh</a>
+          <a class="link-blue" id="refresh-feedback-embed"><i class="fa fa-refresh"></i> &nbsp;Refresh</a>
           <a class="link-blue pull-right" target="_blank" href="https://docs.google.com/spreadsheets/d/{{channel.qa_sheet_id}}">Open in Drive &nbsp;<i class="fa fa-external-link"></i></a>
           <iframe src="https://docs.google.com/a/learningequality.org/spreadsheets/d/{{channel.qa_sheet_id}}/htmlembed" id="feedback-embed"></iframe>
         </div>
