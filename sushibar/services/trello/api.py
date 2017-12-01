@@ -139,7 +139,7 @@ def trello_add_checklist_item(channel, message):
         create_response = post_request("cards/{}/checklists".format(card_id), data={"name": config.TRELLO_CHECKLIST_NAME})
         if create_response.status_code != 200:
             return HttpResponseBadRequest(create_response.content.capitalize())
-        checklist = json.loads(create_response.content)
+        checklist = json.loads(create_response.content.decode('utf-8'))
 
     # Format message with timestamp
     current_timestamp = format_datetime(datetime.datetime.now())
@@ -217,7 +217,6 @@ class ContentChannelSaveTrelloUrl(TrelloBaseView):
             channel.changes_needed = False
             channel.save()
             return HttpResponse("Saved Trello URL")
-
         return trello_add_card_to_channel(request, channel, trello_url)
 
 class TrelloAddChecklistItem(TrelloBaseView):
