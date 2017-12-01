@@ -9,8 +9,8 @@ from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseNotFou
 from oauth2client.service_account import ServiceAccountCredentials
 from rest_framework.views import APIView
 
-GOOGLE_QA_TEMPLATE_ID = "11Wxms1ZcAI_stQ1L0w1G2vC9shPDf67u1VIERnz93YM"
-TARGET_FOLDER_ID = "1dwZwAjRTkPYeOipdYSsCsLj2l1CjDYg2"
+GOOGLE_QA_TEMPLATE_ID = settings.GOOGLE_QA_TEMPLATE_ID
+TARGET_FOLDER_ID = settings.TARGET_FOLDER_ID
 
 def get_credentials():
     scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
