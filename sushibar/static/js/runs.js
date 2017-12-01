@@ -346,4 +346,8 @@ $(function() {
   $(".trello-alert-mark-done").on("click", alert_trello_done);
   $(".trello-alert-flag-for-qa").on("click", alert_trello_qa);
   $(".trello-alert-request-publish").on("click", alert_trello_publish);
+
+  $("#refresh-feedback-embed").on("click", function() {
+    $("#feedback-embed").attr('src', $("#feedback-embed").attr('src'));
+  });
 });
