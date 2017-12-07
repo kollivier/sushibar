@@ -52,7 +52,7 @@ services:
       - VIRTUAL_PORT=6000
       - ASGI_UPSTREAM_NAME=sushibar_asgi_upstream
       - VIRTUAL_PROTO=http
-      - HTTPS_METHOD=redirect
+      - HTTPS_METHOD=noredirect
 
   asgi-worker:
     container_name: asgi-worker
