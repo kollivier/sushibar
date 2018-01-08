@@ -22,6 +22,7 @@ function get_dataset(resource, idx, data) {
 }
 
 function create_config(data) {
+  if (!data.length) { return; }
   var counts = data[0].resource_counts;
   delete counts['total']
   delete counts['json']
