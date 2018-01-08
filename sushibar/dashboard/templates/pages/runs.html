@@ -197,8 +197,8 @@
       <div class="col-12 tab-pane" id="feedback" role="tabpanel" aria-labelledby="feedback">
         <div class="{% if not channel.qa_sheet_id %}hidden{% endif %}" id="feedback-embed-wrapper">
           <a class="link-blue" id="refresh-feedback-embed"><i class="fa fa-refresh"></i> &nbsp;Refresh</a>
-          <a class="link-blue pull-right" target="_blank" href="https://docs.google.com/spreadsheets/d/{{channel.qa_sheet_id}}">Open in Drive &nbsp;<i class="fa fa-external-link"></i></a>
-          <iframe src="https://docs.google.com/a/learningequality.org/spreadsheets/d/{{channel.qa_sheet_id}}/htmlembed" id="feedback-embed"></iframe>
+          <a class="link-blue pull-right" target="_blank" href="{% if channel.qa_sheet_id %}https://docs.google.com/spreadsheets/d/{{channel.qa_sheet_id}}{% endif %}">Open in Drive &nbsp;<i class="fa fa-external-link"></i></a>
+          <iframe src="{% if channel.qa_sheet_id %}https://docs.google.com/a/learningequality.org/spreadsheets/d/{{channel.qa_sheet_id}}/htmlembed{% endif %}" id="feedback-embed"></iframe>
         </div>
         <div class="{% if channel.qa_sheet_id %}hidden{% endif %}" id="feedback-prompt-wrapper">
           <h3 class="text-center" id="qa-prompt">No feedback yet: flag channel for QA to generate spreadsheet when chef is ready</h3>
