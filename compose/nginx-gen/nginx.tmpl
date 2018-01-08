@@ -305,6 +305,30 @@ server {
   include /etc/nginx/vhost.d/default;
   {{ end }}
 
+
+
+
+
+  ## SERVE STATIC FILES FROM CONTAINER'S /static OVER HTTP (temporary hack because can't renew SSL because new cloudflare setup)
+  location /static/ {
+    alias /static/;
+    break;
+  }
+
+  ## SERVE MEDIA FILES FROM CONTAINER'S /MEDIA
+  location /media/ {
+    alias /media/;
+    break;
+  }
+
+  ## Error pages
+  error_page 500 502 503 504 /500.html;
+  location = /500.html {
+    root /static/;
+  }
+
+
+
   location / {
     {{ if eq $proto "uwsgi" }}
     include uwsgi_params;

@@ -204,6 +204,7 @@ class DashboardView(TemplateView):
 
             channel_data = {
                 "channel": channel.name,
+                "trello_url": channel.trello_url,
                 "run_needed": channel.run_needed,
                 "changes_needed": channel.changes_needed,
                 "channel_url": "%s/%s/edit" % (channel.default_content_server, channel.channel_id.hex),
@@ -235,11 +236,14 @@ class DashboardView(TemplateView):
 # RUN DETAIL HELPERS ###########################################################
 
 def sizeof_fmt(num, suffix='B'):
-    for unit in ['','K','M','G']:
-        if abs(num) < 1024.0:
-            return "%3.1f%s%s" % (num, unit, suffix)
-        num /= 1024.0
-    return "%.1f%s%s" % (num, 'T', suffix)
+    if num:
+        for unit in ['','K','M','G']:
+            if abs(num) < 1024.0:
+                return "%3.1f%s%s" % (num, unit, suffix)
+            num /= 1024.0
+        return "%.1f%s%s" % (num, 'T', suffix)
+    else:
+        return "0"
 
 # Darjeeling Limited
 progress_bar_colors = ["#F3BE1A", "#66321C", "#FFA475", "#067586", "#C87533", "#52656B", "#CF5351", "#4F4B59", "#738F1E", "#037784"]

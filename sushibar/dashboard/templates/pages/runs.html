@@ -26,27 +26,39 @@
         </div>
       </div>
       <div id="alert-area" class="row">
-        {% if channel.run_needed or channel.changes_needed %}
-        <div class="alert col-12 trello-action-error alert-danger hidden" role="alert"></div>
-        <div class="alert col-12 trello-action-success alert-success hidden" role="alert">
-          <b class="text">DONE</b><span class="pull-right fa fa-check"></span>
-        </div>
-        <div class="alert col-12 trello-action-alert" role="alert">
+        {% if channel.run_needed or channel.changes_needed or channel.new_run_complete %}
+          <div class="alert col-12 trello-action-error alert-danger hidden" role="alert"></div>
+          <div class="alert col-12 trello-action-success alert-success hidden" role="alert">
+            <b class="text">DONE</b><span class="pull-right fa fa-check"></span>
+          </div>
+          <div class="alert col-12 trello-action-alert {% if not channel.trello_url %}hidden{% endif %}" role="alert">
+            <span class="alert-prompt">
+              <i class="fa fa-exclamation-circle"></i> &nbsp;
+              {% if channel.changes_needed %}<strong>Changes Requested</strong> &nbsp;Please review the QA sheet and update this chef
+              {% else %}{% if channel.run_needed %}<strong>Run Requested</strong>
+              {% else %}<strong>New Run Detected</strong>
+              {% endif %}{% endif %}
+              {% if channel.changes_needed %}
+                <a class="pull-right" href="#feedback">VIEW FEEDBACK</a>
+              {% else %}
+                <a class="pull-right trello-alert-mark-done">DONE</a>
+                <a class="pull-right trello-alert-request-publish">REQUEST PUBLISH</a>
+              {% endif %}
+              <a class="pull-right trello-alert-flag-for-qa">FLAG FOR QA</a>
+            </span>
+            <span class="alert-processing hidden">
+              <b>PROCESSING...</b>
+              <i class="fa fa-spinner fa-pulse fa-fw pull-right"></i>
+            </span>
+          </div>
+        {% endif %}
+        <div class="alert col-12 trello-card-alert {% if channel.trello_url %}hidden{% endif %}" role="alert">
           <span class="alert-prompt">
             <i class="fa fa-exclamation-circle"></i> &nbsp;
-            {% if channel.run_needed %}<strong>Run Requested</strong>
-            {% else %}<strong>Changes Requested</strong> &nbsp;Please review the QA sheet and run this chef after making the requested changes
-            {% endif %}
-            <a class="pull-right trello-alert-mark-done">DONE</a>
-            <a class="pull-right trello-alert-flag-for-qa">FLAG FOR QA</a>
-            <!-- <a class="pull-right trello-link-to-qa">VIEW FEEDBACK</a> -->
-          </span>
-          <span class="alert-processing hidden">
-            <b>PROCESSING...</b>
-            <i class="fa fa-spinner fa-pulse fa-fw pull-right"></i>
+            <strong>No Trello card found</strong>
+            <a class="pull-right" data-toggle="modal" data-target="#channel-info-modal">ADD CARD</a>
           </span>
         </div>
-        {% endif %}
       </div>
     </div>
   </div>
@@ -77,13 +89,14 @@
       <div class="col-6 text-right" id="user-details">{% if channel.registered_by_user %}Registered by: <b><a href="mailto:{{channel.registered_by_user}}">{{channel.registered_by_user}}</a></b>{% else %}Not Registered{% endif %} &nbsp;&nbsp;|&nbsp;&nbsp; Run by: <b><a href="mailto:{{run.started_by_user}}">{{run.started_by_user}}</a></b></div>
     </div>
     <nav class="row nav nav-pills nav-fill sushi-tabs" id="run-tabs" role="tablist">
-      <a role="presentation" class="col-3 nav-item nav-link show active" data-toggle="tab" href="#summary" role="tab" aria-controls="summary" aria-expanded="true">SUMMARY</a>
+      <a role="presentation" class="col-3 nav-item nav-link" data-toggle="tab" href="#summary" role="tab" aria-controls="summary" aria-expanded="true">SUMMARY</a>
       <a role="presentation" class="col-3 nav-item nav-link" data-toggle="tab" href="#tree" role="tab" aria-controls="tree" aria-expanded="true">CONTENT TREE</a>
-      <a role="presentation" class="col-3 nav-item nav-link" data-toggle="tab" href="#resources" role="tab" aria-controls="resources" aria-expanded="true">RESOURCES</a>
-      <a role="presentation" class="col-3 nav-item nav-link" data-toggle="tab" href="#logs" role="tab" aria-controls="logs" aria-expanded="true">{% if run.state == 'FAILURE' %}<i class="fa fa-exclamation-circle"></i>&nbsp;&nbsp;{% endif %}LOGS</a>
+      <a role="presentation" class="col-2 nav-item nav-link" data-toggle="tab" href="#resources" role="tab" aria-controls="resources" aria-expanded="true">RESOURCES</a>
+      <a role="presentation" class="col-2 nav-item nav-link" data-toggle="tab" href="#logs" role="tab" aria-controls="logs" aria-expanded="true">{% if run.state == 'FAILURE' %}<i class="fa fa-exclamation-circle"></i>&nbsp;&nbsp;{% endif %}LOGS</a>
+      <a role="presentation" class="col-2 nav-item nav-link" data-toggle="tab" href="#feedback" role="tab" aria-controls="feedback" aria-expanded="true">FEEDBACK</a>
     </nav>
     <div class="tab-content">
-      <div class="col-12 tab-pane show active" id="summary" role="tabpanel" aria-labelledby="summary">
+      <div class="col-12 tab-pane" id="summary" role="tabpanel" aria-labelledby="summary">
         <em class="pull-right">Total duration: {{total_time}}</em>
         <h3 class="header">Run Stages {% if run.state == 'FAILURE' %}<span class="failed-run">- Failed</span>{% endif %}</h3>
         <div class="progress" id="run-progress">
@@ -181,6 +194,16 @@
           </div>
         </div>
       </div>
+      <div class="col-12 tab-pane" id="feedback" role="tabpanel" aria-labelledby="feedback">
+        <div class="{% if not channel.qa_sheet_id %}hidden{% endif %}" id="feedback-embed-wrapper">
+          <a class="link-blue" id="refresh-feedback-embed"><i class="fa fa-refresh"></i> &nbsp;Refresh</a>
+          <a class="link-blue pull-right" target="_blank" href="https://docs.google.com/spreadsheets/d/{{channel.qa_sheet_id}}">Open in Drive &nbsp;<i class="fa fa-external-link"></i></a>
+          <iframe src="https://docs.google.com/a/learningequality.org/spreadsheets/d/{{channel.qa_sheet_id}}/htmlembed" id="feedback-embed"></iframe>
+        </div>
+        <div class="{% if channel.qa_sheet_id %}hidden{% endif %}" id="feedback-prompt-wrapper">
+          <h3 class="text-center" id="qa-prompt">No feedback yet: flag channel for QA to generate spreadsheet when chef is ready</h3>
+        </div>
+      </div>
     </div>
   {% endif %}
 </div>
@@ -202,12 +225,15 @@
         <br>
         {% if channel_status != 'New' %}
           <div class="text-center">
-            <button type="button" class="btn btn-darkgray" href="{{channel_url}}" target="_blank">OPEN CHANNEL</button>
+            <a class="btn btn-darkgray" href="{{channel_url}}" target="_blank">OPEN CHANNEL</a>
             <br>
             <br>
+            {% if channel.spec_sheet_url %}<a class="link-gray" href="{{channel.spec_sheet_url}}" target="_blank">View Specs</a>{% endif %}
             {% for action in actions %}
               <a class="link-gray" href="{{action.url}}" target="_blank">{{action.action_text}}</a>
             {% endfor %}
+            <br>
+            <br>
           </div>
           <hr/>
           <h5><b><em class="fa fa-trello trello-icon"></em> &nbsp;Trello Options</b></h5>

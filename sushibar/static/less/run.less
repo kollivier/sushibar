@@ -41,9 +41,10 @@
 	    border-radius: 0px;
 	    margin: 5px;
 		flex: auto;
-	    &.trello-action-alert {
+	    &.trello-action-alert, &.trello-card-alert {
 	    	color: @darkyellow;
 	    	background-color: @mediumyellow;
+	    	a { color: inherit; text-decoration: none; }
 	    	&.disabled { opacity: 0.8; }
 	    }
 	    a {
@@ -191,11 +192,23 @@
 			}
 		}
 	}
+	#feedback {
+		#refresh-feedback-embed { margin-left: 5px; }
+		#feedback-embed {
+			margin-top: 20px;
+			width: 100%;
+			min-height: 50vh;
+		}
+		#qa-prompt {
+			margin-top: 15%;
+    		color: @gray-300;
+		}
+	}
 }
 
 #channel-info-modal{
 	.modal-content { width: 565px; }
-	.trello-icon{ color: #1078BA; }
+	.trello-icon{ color: @trelloblue; }
 	.channel-id-btn, .channel_name {
 		background-color: transparent;
 		color: @darkgray;

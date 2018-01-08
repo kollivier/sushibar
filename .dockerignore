@@ -1,4 +1,5 @@
-credentials
+credentials/docker-machine-user.env
+credentials/production.env
 staticfiles
 local_media
 .*

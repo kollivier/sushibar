@@ -1,4 +1,4 @@
-const TRELLO_REGEX = /https{0,1}:\/\/trello.com\/c\/([0-9A-Za-z]{8})\/.*/;
+const TRELLO_REGEX = /^https{0,1}:\/\/trello.com\/c\/([0-9A-Za-z]{8})\/[^\/]*$/;
 
 function format_date(run) {
   return moment(run["created_at"]).format("MMM D");
@@ -71,6 +71,7 @@ function create_config(data) {
 
 
 
+
 /****************** TRELLO API FUNCTIONS ******************/
 
 
@@ -101,6 +102,8 @@ function create_config(data) {
         $("#trello-options, #trello-embed").removeClass("hidden");
         $("#trello-url-prompt, #trello-link-wrapper").addClass("hidden");
         window.TrelloCards.create(trello_url, $("#trello-embed-wrapper")[0], { compact: true  });
+        $(".trello-card-alert").addClass("hidden");
+        $(".trello-action-alert").removeClass("hidden");
         trello_success("Trello card added!");
       },
       error: trello_error
@@ -119,6 +122,8 @@ function create_config(data) {
           $("#trello-link-input").val("");
           $("#trello-embed").addClass("hidden");
           $("#trello-url-prompt, #trello-link-wrapper").removeClass("hidden");
+          $(".trello-card-alert").removeClass("hidden");
+          $(".trello-action-alert").addClass("hidden");
           trello_success("Removed Trello URL");
         },
         error: trello_error
@@ -176,7 +181,20 @@ function create_config(data) {
   }
 
   function trello_flag_channel_for_qa() {
-    trello_move_card_to_list("flag_for_qa", "Flagged channel for QA", trello_pending, trello_success, trello_error);
+    trello_pending();
+    $.ajax({
+      url: "/api/channels/" + channel_id + "/flag_for_qa/",
+      type: "POST",
+      success: function(data) {
+        trello_success("Flagged channel for QA");
+        $("#feedback-embed").attr("src", "https://docs.google.com/a/learningequality.org/spreadsheets/d/" + data.qa_sheet_id + "/htmlembed")
+        $("#feedback-embed-wrapper").removeClass("hidden");
+        $("#feedback-prompt-wrapper").addClass("hidden");
+        history.replaceState(undefined, undefined, "#feedback");
+        $('.nav-link[href="#feedback"]').tab('show');
+      },
+      error: trello_error
+    });
   }
 
   function trello_flag_channel_for_publish() {
@@ -212,6 +230,10 @@ function create_config(data) {
 
   function alert_trello_qa() {
     trello_move_card_to_list("flag_for_qa", "Flagged channel for QA", alert_trello_pending, alert_trello_success, alert_trello_error);
+  }
+
+  function alert_trello_publish() {
+    trello_move_card_to_list("flag_for_publish", "Sent publish request", alert_trello_pending, alert_trello_success, alert_trello_error);
   }
 
   function update_trello_comment() {
@@ -324,4 +346,9 @@ $(function() {
   $("#trello-comment").on("paste", update_trello_comment);
   $(".trello-alert-mark-done").on("click", alert_trello_done);
   $(".trello-alert-flag-for-qa").on("click", alert_trello_qa);
+  $(".trello-alert-request-publish").on("click", alert_trello_publish);
+
+  $("#refresh-feedback-embed").on("click", function() {
+    $("#feedback-embed").attr('src', $("#feedback-embed").attr('src'));
+  });
 });
