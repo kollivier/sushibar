@@ -187,6 +187,7 @@ function create_config(data) {
       type: "POST",
       success: function(data) {
         trello_success("Flagged channel for QA");
+        $("#feedback-link").attr("href", "https://docs.google.com/spreadsheets/d/" + data.qa_sheet_id);
         $("#feedback-embed").attr("src", "https://docs.google.com/a/learningequality.org/spreadsheets/d/" + data.qa_sheet_id + "/htmlembed")
         $("#feedback-embed-wrapper").removeClass("hidden");
         $("#feedback-prompt-wrapper").addClass("hidden");

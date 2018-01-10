@@ -25,7 +25,7 @@ from .serializers import ChannelControlSerializer
 from .utils import load_tree_for_channel, set_run_options, calculate_channel_id
 
 from sushibar.services.trello.api import trello_move_card_to_qa_list, trello_add_checklist_item
-from sushibar.services.google.api import generate_qa_sheet
+from sushibar.services.google.api import create_qa_sheet
 
 # REDIS connection #############################################################
 import redis
@@ -116,8 +116,9 @@ class ContentChannelFlagForQA(APIView):
             raise Http404
 
         # TODO: Don't generate if channel.qa_sheet_id already exists!
-        channel.qa_sheet_id = generate_qa_sheet(channel.name + " QA", qa_sheet_id=channel.qa_sheet_id)
-        channel.save()
+        if not channel.qa_sheet_id:
+            channel.qa_sheet_id = create_qa_sheet(channel.name + " QA")
+            channel.save()
 
         message = "Fill out QA sheet {}".format("https://docs.google.com/spreadsheets/d/{}/edit".format(channel.qa_sheet_id))
         trello_response = trello_add_checklist_item(channel, message)
