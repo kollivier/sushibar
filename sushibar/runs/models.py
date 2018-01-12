@@ -45,7 +45,7 @@ class ContentChannel(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
 
-    followers = models.ManyToManyField(BarUser, related_name="saved_channels")
+    followers = models.ManyToManyField(BarUser, related_name="saved_channels", blank=True)
 
     def get_last_run(self):
         try:
