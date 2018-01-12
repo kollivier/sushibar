@@ -23,18 +23,19 @@ class GoogleClient():
         http = credentials.authorize(httplib2.Http())
         self.service = discovery.build('drive', 'v3', http=http)
 
+
     def create(self, title, template_id=None):
         """ create: creates a spreadsheet with the given title
             Args: title (str) Title of spreadsheet
             Returns: Spreadsheet (see https://github.com/burnash/gspread/blob/master/gspread/models.py#L77)
         """
         if template_id:
-            spreadsheet_data = self.service.files().copy(fileId=template_id, body={'name': title}).execute()
+            spreadsheet_data = self.service.files().copy(fileId=template_id, body={'name': title}, supportsTeamDrives=True).execute()
             spreadsheet = self.get(spreadsheet_data['id'])
         else:
             spreadsheet = self.client.create(title)
         spreadsheet.share(self.client.auth._service_account_email, perm_type='user', role='owner')
-        self.client.insert_permission(spreadsheet._id, None, perm_type='anyone', role='reader')
+        self.service.permissions().create(fileId=spreadsheet._id, body={'role': 'writer', 'type': 'anyone'}).execute()
 
         return spreadsheet
 
