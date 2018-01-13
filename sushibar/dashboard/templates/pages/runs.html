@@ -228,6 +228,7 @@
             <a class="btn btn-darkgray" href="{{channel_url}}" target="_blank">OPEN CHANNEL</a>
             <br>
             <br>
+            {% if channel.chef_repo_url %}<a class="link-gray" href="{{channel.chef_repo_url}}" target="_blank">View on Github</a>{% endif %}
             {% if channel.spec_sheet_url %}<a class="link-gray" href="{{channel.spec_sheet_url}}" target="_blank">View Specs</a>{% endif %}
             {% for action in actions %}
               <a class="link-gray" href="{{action.url}}" target="_blank">{{action.action_text}}</a>
