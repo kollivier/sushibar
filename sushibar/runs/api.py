@@ -120,7 +120,7 @@ class ContentChannelFlagForQA(APIView):
             channel.qa_sheet_id = create_qa_sheet(channel.name + " QA")
             channel.save()
 
-        message = "Fill out QA sheet {}".format("https://docs.google.com/spreadsheets/d/{}/edit".format(channel.qa_sheet_id))
+        message = "Fill out [QA sheet]({})".format("https://docs.google.com/spreadsheets/d/{}/edit".format(channel.qa_sheet_id))
         trello_response = trello_add_checklist_item(channel, message)
 
         response = trello_move_card_to_qa_list(channel)
