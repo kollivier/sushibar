@@ -236,7 +236,9 @@
             <br>
             <br>
             {% if channel.chef_repo_url %}<a class="link-gray" href="{{channel.chef_repo_url}}" target="_blank">View on Github</a>{% endif %}
+            &nbsp;&nbsp;
             {% if channel.spec_sheet_url %}<a class="link-gray" href="{{channel.spec_sheet_url}}" target="_blank">View Specs</a>{% endif %}
+            &nbsp;
             {% for action in actions %}
               <a class="link-gray" href="{{action.url}}" target="_blank">{{action.action_text}}</a>
             {% endfor %}
