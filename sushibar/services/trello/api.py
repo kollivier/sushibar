@@ -161,6 +161,25 @@ def trello_add_checklist_item(channel, message):
 
     return HttpResponse("Added checklist item '{}'".format(formatted_message))
 
+def trello_add_channel_link(channel):
+    # Check if channel is already linked to card
+    card_id = extract_id(channel.trello_url)
+    card_endpoint = "cards/{}".format(card_id)
+    card_response = get_request(card_endpoint)
+
+    # Return bad request if getting card fails
+    if card_response.status_code != 200:
+        return HttpResponseBadRequest(card_response.content.capitalize())
+
+    description = json.loads(card_response.content.decode('utf-8')).get('desc')
+    channel_link = "Channel: [%s](%s/%s/edit)" % (channel.name, channel.default_content_server, channel.channel_id.hex)
+
+    # If the channel link isn't in the description, append it
+    if description and channel_link not in description:
+        response = put_request(card_endpoint, data={'desc': "%s\n%s" % (description, channel_link)})
+        if response.status_code != 200:
+            return HttpResponseBadRequest(response.content.capitalize())
+    return HttpResponse("Updated description with " + channel_link)
 
 def extract_id(url):
     match = re.search(config.TRELLO_REGEX, url)
