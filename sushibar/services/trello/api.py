@@ -18,6 +18,9 @@ TRELLO_TOKEN = settings.TRELLO_TOKEN
 TRELLO_BOARD = settings.TRELLO_BOARD
 TRELLO_URL = "https://api.trello.com/1/"
 
+TRELLO_QA_DEADLINE = 7          # Number of days to allow for QA
+TRELLO_PUBLISH_DEADLINE = 3     # Number of days to allow for publish
+
 # Trello Requests
 def post_request(endpoint, data=None):
     url = "{}{}".format(TRELLO_URL, endpoint)
@@ -43,17 +46,24 @@ def delete_request(endpoint, data=None):
     data.update({"key": TRELLO_API_KEY, "token": TRELLO_TOKEN})
     return requests.delete("{}?{}".format(url, urllib.parse.urlencode(data)))
 
-def trello_move_card(channel, list_id):
+def trello_set_due_date(card_id, due_days_from_now):
+    due_date = datetime.datetime.now() + datetime.timedelta(days=due_days_from_now)
+    due_date = datetime.datetime(due_date.year, due_date.month, due_date.day) # Normalize to midnight
+    put_request("cards/{}".format(card_id), data={'dueComplete': 'false', 'due': str(due_date)})
+
+def trello_move_card(channel, list_id, due_days_from_now=None):
     card_id = extract_id(channel.trello_url)
     response = put_request("cards/{}/idList".format(card_id), data={"value": list_id})
     response.raise_for_status()
+    if due_days_from_now:
+        trello_set_due_date(card_id, due_days_from_now)
     return response
 
 def trello_move_card_to_run_list(channel):
     return trello_move_card(channel, config.TRELLO_RUN_LIST_ID)
 
 def trello_move_card_to_qa_list(channel):
-    return trello_move_card(channel, config.TRELLO_QA_LIST_ID)
+    return trello_move_card(channel, config.TRELLO_QA_LIST_ID, due_days_from_now=TRELLO_QA_DEADLINE)
 
 def trello_move_card_to_done_list(channel):
     return trello_move_card(channel, config.TRELLO_DONE_LIST_ID)
@@ -91,15 +101,6 @@ def trello_get_list_name(channel):
     card_id = extract_id(channel.trello_url)
     response = get_request("cards/{}".format(card_id))
     trello_data = json.loads(response.content.decode('utf-8'))
-    list_id = trello_data['idList']
-    list_response = get_request("lists/{}".format(list_id))
-    return trello_data['name']
-
-def trello_get_due_date(channel):
-    card_id = extract_id(channel.trello_url)
-    response = get_request("cards/{}".format(card_id))
-    trello_data = json.loads(response.content.decode('utf-8'))
-    import pdb; pdb.set_trace()
     list_id = trello_data['idList']
     list_response = get_request("lists/{}".format(list_id))
     return trello_data['name']
@@ -268,6 +269,7 @@ class TrelloBaseMoveList(TrelloBaseView):
     Move card to list
     """
     list_id = None
+    due_days_from_now = None
 
     def put(self, request, channel_id):
         """
@@ -287,14 +289,18 @@ class TrelloBaseMoveList(TrelloBaseView):
         if response.status_code != 200:
             return HttpResponseBadRequest(response.content.capitalize())
 
+        if self.due_days_from_now:
+            trello_set_due_date(card_id, self.due_days_from_now)
+
         return HttpResponse(list_response.content)
+
 
 class TrelloMoveToQAList(TrelloBaseMoveList):
     """
     Move card to QA list
     """
     list_id = config.TRELLO_QA_LIST_ID
-
+    due_days_from_now = TRELLO_QA_DEADLINE
 
 class TrelloMoveToDoneList(TrelloBaseMoveList):
     """
@@ -307,6 +313,7 @@ class TrelloMoveToPublishList(TrelloBaseMoveList):
     Move card to DONE list
     """
     list_id = config.TRELLO_PUBLISH_LIST_ID
+    due_days_from_now = TRELLO_PUBLISH_DEADLINE
 
 class TrelloNotifyCardChange(TrelloBaseView):
     """
@@ -329,8 +336,8 @@ class TrelloNotifyCardChange(TrelloBaseView):
             if request_data.get('listAfter'):
                 self.handle_move(request_data, channel)
 
-            # Card's due date has been updated
-            elif request_data.get('card') and request_data['card'].get('due'):
+            # Card's due date has been updated (due may be null, so check for key)
+            elif request_data.get('old') and 'due' in request_data['old']:
                 self.handle_due_date(request_data, channel)
 
         except KeyError:
