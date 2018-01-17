@@ -35,6 +35,7 @@ class ContentChannel(models.Model):
     run_needed = models.BooleanField(default=False)
     changes_needed = models.BooleanField(default=False)
     new_run_complete = models.BooleanField(default=False)
+    due_date = models.DateTimeField(blank=True, null=True)
 
     # Authorization-related fields for channel (not used in MMVP)
     registered_by_user = models.EmailField(max_length=200, blank=True, null=True)
