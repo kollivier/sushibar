@@ -95,6 +95,15 @@ def trello_get_list_name(channel):
     list_response = get_request("lists/{}".format(list_id))
     return trello_data['name']
 
+def trello_get_due_date(channel):
+    card_id = extract_id(channel.trello_url)
+    response = get_request("cards/{}".format(card_id))
+    trello_data = json.loads(response.content.decode('utf-8'))
+    import pdb; pdb.set_trace()
+    list_id = trello_data['idList']
+    list_response = get_request("lists/{}".format(list_id))
+    return trello_data['name']
+
 def validate_trello_card(trello_url):
     card_id = extract_id(trello_url)
     response = get_request("cards/{}".format(card_id))
@@ -299,14 +308,14 @@ class TrelloMoveToPublishList(TrelloBaseMoveList):
     """
     list_id = config.TRELLO_PUBLISH_LIST_ID
 
-class TrelloNotifyCardMove(TrelloBaseView):
+class TrelloNotifyCardChange(TrelloBaseView):
     """
     Update status of channel based on Trello list
     """
 
-    def handle_move(self, request, channel_id):
+    def handle_change(self, request, channel_id):
         """
-        Handle card moves from Trello (webhook)
+        Handle card change from Trello (webhook)
         """
         try:
             channel = ContentChannel.objects.get(channel_id=channel_id)
@@ -314,27 +323,43 @@ class TrelloNotifyCardMove(TrelloBaseView):
             return HttpResponseNotFound("Channel not found")
 
         try:
-            new_list = request.data['action']['data']['listAfter']['id']
-            old_list = request.data['action']['data']['listBefore']['id']
+            request_data = request.data['action']['data']
 
-            # Only set if chef is not in initial stage
-            if old_list != config.TRELLO_READY_LIST_ID:
-                channel.run_needed = new_list == config.TRELLO_RUN_LIST_ID
-                channel.changes_needed = new_list == config.TRELLO_DEVELOPMENT_LIST_ID
-            channel.new_run_complete = False
-            channel.save()
+            # Card has been moved
+            if request_data.get('listAfter'):
+                self.handle_move(request_data, channel)
 
-            # TODO: Add logic for emailing developer here
+            # Card's due date has been updated
+            elif request_data.get('card') and request_data['card'].get('due'):
+                self.handle_due_date(request_data, channel)
+
         except KeyError:
             pass
 
         return HttpResponse("")
 
+    def handle_due_date(self, request_data, channel):
+        channel.due_date = request_data['card']['due']
+        channel.save()
+
+    def handle_move(self, request_data, channel):
+        new_list = request_data['listAfter']['id']
+        old_list = request_data['listBefore']['id']
+
+        # Only set if chef is not in initial stage
+        if old_list != config.TRELLO_READY_LIST_ID:
+            channel.run_needed = new_list == config.TRELLO_RUN_LIST_ID
+            channel.changes_needed = new_list == config.TRELLO_DEVELOPMENT_LIST_ID
+        channel.new_run_complete = False
+        channel.save()
+
+        # TODO: Add logic for emailing/pinging developer here
+
     def post(self, request, channel_id):
-        return self.handle_move(request, channel_id)
+        return self.handle_change(request, channel_id)
 
     def put(self, request, channel_id):
-        return self.handle_move(request, channel_id)
+        return self.handle_change(request, channel_id)
 
     def head(self, request, channel_id):
         return HttpResponse("Success!")

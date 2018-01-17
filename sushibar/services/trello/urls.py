@@ -1,7 +1,7 @@
 from django.conf.urls import url
 from rest_framework.urlpatterns import format_suffix_patterns
 
-from .api import ContentChannelSaveTrelloUrl, TrelloAddChecklistItem, TrelloMoveToQAList, TrelloNotifyCardMove, TrelloSendComment, TrelloMoveToDoneList, TrelloMoveToPublishList
+from .api import ContentChannelSaveTrelloUrl, TrelloAddChecklistItem, TrelloMoveToQAList, TrelloNotifyCardChange, TrelloSendComment, TrelloMoveToDoneList, TrelloMoveToPublishList
 
 urlpatterns = [
     # Save Trello URL to channel
@@ -31,7 +31,7 @@ urlpatterns = [
 
     # WEBHOOK: Notify user when QA is done
     url(regex=r'(?P<channel_id>[0-9A-Fa-f-]+)/card_moved/$',
-        view=TrelloNotifyCardMove.as_view(),
+        view=TrelloNotifyCardChange.as_view(),
         name='trello_notify_card_move'),
 
     # Send comment to Trello card
