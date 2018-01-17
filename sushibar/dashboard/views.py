@@ -170,6 +170,7 @@ class DashboardView(TemplateView):
                 print("No runs for channel %s " % channel.name)
                 channel_data = {
                     "channel": channel.name,
+                    "due_date": channel.due_date,
                     "id": channel.channel_id.hex,
                     "starred": self.request.user.is_authenticated and self.request.user.saved_channels.filter(channel_id=channel.channel_id).exists(),
                     "status": "New",
@@ -204,6 +205,7 @@ class DashboardView(TemplateView):
 
             channel_data = {
                 "channel": channel.name,
+                "due_date": channel.due_date,
                 "trello_url": channel.trello_url,
                 "run_needed": channel.run_needed,
                 "changes_needed": channel.changes_needed,

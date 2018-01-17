@@ -86,11 +86,11 @@
             </a>
           {% else %}{% if channel.changes_needed %}
 
-              <i class="fa fa-square changes-needed-icon popover-icon" data-toggle="tooltip" data-placement="top" title="Changes Requested"></i>
+              <i class="fa fa-square changes-needed-icon popover-icon" data-toggle="tooltip" data-placement="top" data-html="true" title="Changes Requested{% if channel.due_date %}<br>(Due {{channel.due_date|date:'N d'}}){% endif %}"></i>
             </a>
           {% else %}{% if channel.run_needed %}
             <a href="{% url 'runs' channel.last_run_id %}#summary">
-              <i class="fa fa-square run-needed-icon popover-icon" data-toggle="tooltip" data-placement="top" title="Run Requested"></i>
+              <i class="fa fa-square run-needed-icon popover-icon" data-toggle="tooltip" data-placement="top" data-html="true" title="Run Requested{% if channel.due_date %}<br>(Due {{channel.due_date|date:'N d'}}){% endif %}"></i>
             </a>
           {% else %}<i class="fa fa-square no-request-icon"></i>{% endif %}{% endif %}{% endif %}&nbsp;
           <a href="{% url 'runs' channel.last_run_id %}#summary" class="channel_name">

@@ -34,8 +34,8 @@
           <div class="alert col-12 trello-action-alert {% if not channel.trello_url %}hidden{% endif %}" role="alert">
             <span class="alert-prompt">
               <i class="fa fa-exclamation-circle"></i> &nbsp;
-              {% if channel.changes_needed %}<strong>Changes Requested</strong> &nbsp;Please review the QA sheet and update this chef
-              {% else %}{% if channel.run_needed %}<strong>Run Requested</strong>
+              {% if channel.changes_needed %}<strong>Changes Requested</strong> &nbsp;Review feedback and update this chef{% if channel.due_date %} by {{channel.due_date|date:'N d'}}{% endif %}
+              {% else %}{% if channel.run_needed %}<strong>Run Requested</strong> &nbsp;{% if channel.due_date %}Due by {{channel.due_date|date:'N d'}}{% endif %}
               {% else %}<strong>New Run Detected</strong>
               {% endif %}{% endif %}
               {% if channel.changes_needed %}
