@@ -26,7 +26,13 @@
         </div>
       </div>
       <div id="alert-area" class="row">
-        {% if channel.run_needed or channel.changes_needed or channel.new_run_complete %}
+        {% if channel_status == 'New' and channel.due_date %}
+          <div class="alert alert-info col-12" role="alert">
+            <span class="alert-prompt">
+              Please complete this sushi chef by <strong>{{channel.due_date|date:'N d'}}</strong>
+            </span>
+          </div>
+        {% else %}{% if channel.run_needed or channel.changes_needed or channel.new_run_complete %}
           <div class="alert col-12 trello-action-error alert-danger hidden" role="alert"></div>
           <div class="alert col-12 trello-action-success alert-success hidden" role="alert">
             <b class="text">DONE</b><span class="pull-right fa fa-check"></span>
@@ -36,7 +42,7 @@
               <i class="fa fa-exclamation-circle"></i> &nbsp;
               {% if channel.changes_needed %}<strong>Changes Requested</strong> &nbsp;Review feedback and update this chef{% if channel.due_date %} by {{channel.due_date|date:'N d'}}{% endif %}
               {% else %}{% if channel.run_needed %}<strong>Run Requested</strong> &nbsp;{% if channel.due_date %}Due by {{channel.due_date|date:'N d'}}{% endif %}
-              {% else %}<strong>New Run Detected</strong>
+              {% else %}<strong>New Run Detected</strong> &nbsp;{% if channel.due_date %}Channel is due {{channel.due_date|date:'N d'}}{% endif %}
               {% endif %}{% endif %}
               {% if channel.changes_needed %}
                 <a class="pull-right" href="#feedback">VIEW FEEDBACK</a>
@@ -52,7 +58,7 @@
               <i class="fa fa-spinner fa-pulse fa-fw pull-right"></i>
             </span>
           </div>
-        {% endif %}
+        {% endif %}{% endif %}
         <div class="alert col-12 trello-card-alert {% if channel.trello_url %}hidden{% endif %}" role="alert">
           <span class="alert-prompt">
             <i class="fa fa-exclamation-circle"></i> &nbsp;
