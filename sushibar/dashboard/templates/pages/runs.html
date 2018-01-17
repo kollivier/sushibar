@@ -40,11 +40,12 @@
               {% endif %}{% endif %}
               {% if channel.changes_needed %}
                 <a class="pull-right" href="#feedback">VIEW FEEDBACK</a>
-              {% else %}
+              {% else %}{% if channel.new_run_complete %}
                 <a class="pull-right trello-alert-mark-done">DONE</a>
                 <a class="pull-right trello-alert-request-publish">REQUEST PUBLISH</a>
-              {% endif %}
-              <a class="pull-right trello-alert-flag-for-qa">FLAG FOR QA</a>
+              {% else %}<i class="pull-right">Run chef to continue</i>
+              {% endif %}{% endif %}
+              {% if channel.new_run_complete %}<a class="pull-right trello-alert-flag-for-qa">FLAG FOR QA</a>{% endif %}
             </span>
             <span class="alert-processing hidden">
               <b>PROCESSING...</b>
@@ -228,6 +229,7 @@
             <a class="btn btn-darkgray" href="{{channel_url}}" target="_blank">OPEN CHANNEL</a>
             <br>
             <br>
+            {% if channel.chef_repo_url %}<a class="link-gray" href="{{channel.chef_repo_url}}" target="_blank">View on Github</a>{% endif %}
             {% if channel.spec_sheet_url %}<a class="link-gray" href="{{channel.spec_sheet_url}}" target="_blank">View Specs</a>{% endif %}
             {% for action in actions %}
               <a class="link-gray" href="{{action.url}}" target="_blank">{{action.action_text}}</a>
