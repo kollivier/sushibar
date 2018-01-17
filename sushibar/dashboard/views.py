@@ -318,6 +318,7 @@ class RunView(TemplateView):
                 context['logged_in'] = not self.request.user.is_anonymous()
                 context['saved_icon_class'] = 'fa-star' if self.request.user in channel.followers.all() else 'fa-star-o'
                 context['pr_url'] = "{}/pulls".format(channel.chef_repo_url.rstrip('/'))
+                context['request_storage_email'] = self.request.user.is_authenticated() and self.request.user.email
                 return context
 
             run = channel.runs.latest("created_at")
@@ -408,5 +409,6 @@ class RunView(TemplateView):
                 continue
 
         context['channel_url'] = "%s/%s/edit" % (run.channel.default_content_server, run.channel.channel_id.hex)
+        context['request_storage_email'] = run.started_by_user or self.request.user.is_authenticated() and self.request.user.email
 
         return context

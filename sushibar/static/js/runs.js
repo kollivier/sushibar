@@ -318,8 +318,9 @@ $(function() {
     });
 
 
-    var hash = window.location.hash;
-    hash && $('.nav-link[href="' + hash + '"]').tab('show');
+    var hash = window.location.hash || "#summary";
+    history.replaceState(undefined, undefined, hash);
+    $('.nav-link[href="' + hash + '"]').tab('show');
 
     $('.nav-link').click(function(e) {
       var new_hash = this['href'].substring(this['href'].indexOf('#')+1);
@@ -338,7 +339,7 @@ $(function() {
   $("#trello-link-qa").on("click", trello_flag_channel_for_qa);
   $("#trello-link-publish").on("click", trello_flag_channel_for_publish);
   $("#trello-link-storage").on("click", function() {
-    var message = "Increase storage for " + user_email;
+    var message = "Increase storage for " + request_storage_email;
     trello_add_checklist_item(message, "Sent request for storage");
   });
   $("#trello-send-comment").on("click", trello_send_comment);
