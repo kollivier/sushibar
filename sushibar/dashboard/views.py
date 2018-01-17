@@ -5,7 +5,6 @@ import uuid
 
 from channels import Group
 from django.conf import settings
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.urlresolvers import reverse_lazy
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseRedirect
 from django.shortcuts import redirect
@@ -104,7 +103,7 @@ def get_status(status, run=None, channel_id=None):
 
 # DASHABOARD ###################################################################
 
-class DashboardView(LoginRequiredMixin, TemplateView):
+class DashboardView(TemplateView):
 
     template_name = "pages/home.html"
     view_saved = False
@@ -298,7 +297,7 @@ def modify_data_recursively(data):
 
 # RUN DETAIL ###################################################################
 
-class RunView(LoginRequiredMixin, TemplateView):
+class RunView(TemplateView):
     template_name = "pages/runs.html"
     search_by_channel = False
 
@@ -319,7 +318,7 @@ class RunView(LoginRequiredMixin, TemplateView):
                 context['logged_in'] = not self.request.user.is_anonymous()
                 context['saved_icon_class'] = 'fa-star' if self.request.user in channel.followers.all() else 'fa-star-o'
                 context['pr_url'] = "{}/pulls".format(channel.chef_repo_url.rstrip('/'))
-                context['request_storage_email'] = self.request.user and self.request.user.email
+                context['request_storage_email'] = self.request.user.is_authenticated() and self.request.user.email
                 return context
 
             run = channel.runs.latest("created_at")
@@ -410,6 +409,6 @@ class RunView(LoginRequiredMixin, TemplateView):
                 continue
 
         context['channel_url'] = "%s/%s/edit" % (run.channel.default_content_server, run.channel.channel_id.hex)
-        context['request_storage_email'] = run.started_by_user or self.request.user and self.request.user.email
+        context['request_storage_email'] = run.started_by_user or self.request.user.is_authenticated() and self.request.user.email
 
         return context

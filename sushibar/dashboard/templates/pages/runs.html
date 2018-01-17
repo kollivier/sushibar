@@ -258,7 +258,7 @@
           <br/>
           <div class="text-center" id="trello-options">
             <a class="btn btn-gray trello-action" id="trello-link-comment" data-toggle="collapse" data-target="#trello-comment-section" aria-expanded="false" aria-controls="trello-comment-section">Comment</a>
-            <a class="btn btn-gray trello-action" id="trello-link-storage">Request Storage</a>
+            {% if request_storage_email %}<a class="btn btn-gray trello-action" id="trello-link-storage">Request Storage</a>{% endif %}
             {% if channel_status != 'New' %}
               <a class="btn btn-gray trello-action" id="trello-link-qa">Flag for QA</a>
               <a class="btn btn-gray trello-action" id="trello-link-publish">Request Publish</a>
