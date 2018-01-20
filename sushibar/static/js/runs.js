@@ -180,21 +180,21 @@ function create_config(data) {
     });
   }
 
-  function trello_flag_channel_for_qa() {
-    trello_pending();
+  function trello_flag_channel_for_qa(onpending, onsuccess, onerror) {
+    onpending();
     $.ajax({
       url: "/api/channels/" + channel_id + "/flag_for_qa/",
       type: "POST",
       success: function(data) {
-        trello_success("Flagged channel for QA");
         $("#feedback-link").attr("href", "https://docs.google.com/spreadsheets/d/" + data.qa_sheet_id);
         $("#feedback-embed").attr("src", "https://docs.google.com/a/learningequality.org/spreadsheets/d/" + data.qa_sheet_id + "/htmlembed")
         $("#feedback-embed-wrapper").removeClass("hidden");
         $("#feedback-prompt-wrapper").addClass("hidden");
         history.replaceState(undefined, undefined, "#feedback");
         $('.nav-link[href="#feedback"]').tab('show');
+        onsuccess("Flagged channel for QA");
       },
-      error: trello_error
+      error: onerror
     });
   }
 
@@ -230,7 +230,7 @@ function create_config(data) {
   }
 
   function alert_trello_qa() {
-    trello_move_card_to_list("flag_for_qa", "Flagged channel for QA", alert_trello_pending, alert_trello_success, alert_trello_error);
+    trello_flag_channel_for_qa(alert_trello_pending, alert_trello_success, alert_trello_error);
   }
 
   function alert_trello_publish() {
@@ -336,7 +336,9 @@ $(function() {
   $("#submit-trello-link").on("click", trello_submit_url);
   $("#trello-link-edit").on("click", trello_edit_url);
   $("#remove-trello-link").on("click", trello_remove_url);
-  $("#trello-link-qa").on("click", trello_flag_channel_for_qa);
+  $("#trello-link-qa").on("click", function() {
+    trello_flag_channel_for_qa(trello_pending,trello_success, trello_error);
+  });
   $("#trello-link-publish").on("click", trello_flag_channel_for_publish);
   $("#trello-link-storage").on("click", function() {
     var message = "Increase storage for " + request_storage_email;
