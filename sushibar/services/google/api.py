@@ -30,7 +30,7 @@ class GoogleClient():
             Returns: Spreadsheet (see https://github.com/burnash/gspread/blob/master/gspread/models.py#L77)
         """
         if template_id:
-            spreadsheet_data = self.service.files().copy(fileId=template_id, body={'name': title}, supportsTeamDrives=True).execute()
+            spreadsheet_data = self.service.files().copy(fileId=template_id, body={'name': title}).execute()
             spreadsheet = self.get(spreadsheet_data['id'])
         else:
             spreadsheet = self.client.create(title)
