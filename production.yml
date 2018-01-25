@@ -52,7 +52,7 @@ services:
       - VIRTUAL_PORT=6000
       - ASGI_UPSTREAM_NAME=sushibar_asgi_upstream
       - VIRTUAL_PROTO=http
-      - HTTPS_METHOD=noredirect
+      - HTTPS_METHOD=redirect
 
   asgi-worker:
     container_name: asgi-worker
@@ -123,5 +123,3 @@ services:
       - "./volumes/proxy/certs:/etc/nginx/certs:rw"
     environment:
       - NGINX_DOCKER_GEN_CONTAINER=nginx-gen
-
-
