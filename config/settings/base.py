@@ -310,7 +310,7 @@ TRELLO_BOARD = get_env('TRELLO_BOARD')
 # Google integraion
 # ------------------------------------------------------------------------------
 GOOGLE_AUTH_JSON = "credentials/client_secret.json"
-GOOGLE_QA_TEMPLATE_ID = get_env('GOOGLE_QA_TEMPLATE_ID', default='11Wxms1ZcAI_stQ1L0w1G2vC9shPDf67u1VIERnz93YM')
-TARGET_FOLDER_ID = get_env('TARGET_FOLDER_ID', default="1dwZwAjRTkPYeOipdYSsCsLj2l1CjDYg2")
+GOOGLE_QA_TEMPLATE_ID = get_env('GOOGLE_QA_TEMPLATE_ID', default='13neY4jW6EFKyls91IVMNs8Fiu9gujvblcgHljqVsZVA')
+TARGET_FOLDER_ID = get_env('TARGET_FOLDER_ID', default="0BziX9-4A2RIIQTFDX2FQeWV4dVU")
 LOCAL_DEV_DEFAULT_DOMAIN = None   # set to something like `92832de0.ngrok.io` for testing webhooks
 
