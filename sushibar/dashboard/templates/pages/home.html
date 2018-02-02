@@ -13,10 +13,11 @@
 <div class="tab-content container-fluid main-tab-content">
   <div class="row filter-row">
     <div class="col-8 channel-count">Showing {{channels | length}} Channel{% if channels|length != 1 %}s{% endif%}...</div>
+    {% if not request.user.is_staff %}<div class="col-1 text-center"></div>{% endif %}
     <div class="col-3">
       <select class="filter">
         <option value="">All</option>
-        {% if request.user.is_authenticated %}<option value="starred">Starred</option>{% endif %}
+        <option value="starred">Starred</option>
         <option value="old">Activated</option>
         <option value="new">New Channels</option>
         <option value="changes_needed">Changes Needed</option>
@@ -27,9 +28,11 @@
         <option value="failed">Failed</option>
       </select>
     </div>
+    {% if request.user.is_staff %}
     <div class="col-1 text-center">
       <a data-toggle="modal" data-target="#channel-register-modal"><em class="fa fa-plus"></em></a>
     </div>
+    {% endif %}
   </div>
   <div class="row header_row">
     <div class="col-1 text-center"><em class="fa fa-cog"></em></div>
@@ -80,15 +83,15 @@
           </div>
         </div>
         <div class="col-4 channel_name_cell truncate">
-          {% if not channel.trello_url %}
+          {% if not channel.trello_url and request.user.is_staff %}
             <a href="{% url 'runs' channel.last_run_id %}#summary">
               <i class="fa fa-square card-missing-icon popover-icon" data-toggle="tooltip" data-placement="top" title="No Trello card found"></i>
             </a>
-          {% else %}{% if channel.changes_needed %}
+          {% else %}{% if channel.changes_needed and channel.can_edit %}
 
               <i class="fa fa-square changes-needed-icon popover-icon" data-toggle="tooltip" data-placement="top" data-html="true" title="Changes Requested{% if channel.due_date %}<br>(Due {{channel.due_date|date:'N d'}}){% endif %}"></i>
             </a>
-          {% else %}{% if channel.run_needed %}
+          {% else %}{% if channel.run_needed and channel.can_edit %}
             <a href="{% url 'runs' channel.last_run_id %}#summary">
               <i class="fa fa-square run-needed-icon popover-icon" data-toggle="tooltip" data-placement="top" data-html="true" title="Run Requested{% if channel.due_date %}<br>(Due {{channel.due_date|date:'N d'}}){% endif %}"></i>
             </a>

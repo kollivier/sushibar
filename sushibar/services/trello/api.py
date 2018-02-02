@@ -386,7 +386,7 @@ class TrelloSendComment(TrelloBaseView):
         except ContentChannel.DoesNotExist:
             return HttpResponseNotFound("Channel not found")
 
-        comment = request.data['comment']
+        comment = "{}: {}".format(request.user.email, request.data['comment'])
         card_id = extract_id(channel.trello_url)
 
         response = self.post_request('cards/{}/actions/comments'.format(card_id), data={'text': comment})

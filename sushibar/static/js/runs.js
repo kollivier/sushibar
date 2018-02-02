@@ -100,7 +100,7 @@ function create_config(data) {
       success: function(data){
         $("#trello-embed-wrapper").html("");
         $("#trello-options, #trello-embed").removeClass("hidden");
-        $("#trello-url-prompt, #trello-link-wrapper").addClass("hidden");
+        $(".trello_default_hide").addClass("hidden");
         window.TrelloCards.create(trello_url, $("#trello-embed-wrapper")[0], { compact: true  });
         $(".trello-card-alert").addClass("hidden");
         $(".trello-action-alert").removeClass("hidden");
@@ -121,7 +121,7 @@ function create_config(data) {
         success: function(data){
           $("#trello-link-input").val("");
           $("#trello-embed").addClass("hidden");
-          $("#trello-url-prompt, #trello-link-wrapper").removeClass("hidden");
+          $(".trello_default_hide").removeClass("hidden");
           $(".trello-card-alert").removeClass("hidden");
           $(".trello-action-alert").addClass("hidden");
           trello_success("Removed Trello URL");

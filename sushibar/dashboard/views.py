@@ -5,7 +5,9 @@ import uuid
 
 from channels import Group
 from django.conf import settings
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.urlresolvers import reverse_lazy
+from django.db.models import Q, Max
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseRedirect
 from django.shortcuts import redirect
 from django.template.loader import render_to_string
@@ -102,8 +104,7 @@ def get_status(status, run=None, channel_id=None):
     return STATUS.get(status)
 
 # DASHABOARD ###################################################################
-
-class DashboardView(TemplateView):
+class DashboardView(LoginRequiredMixin, TemplateView):
 
     template_name = "pages/home.html"
     view_saved = False
@@ -148,7 +149,16 @@ class DashboardView(TemplateView):
         context['form'] = ChannelCreateForm()
         context['channels'] = []
 
-        channels = ContentChannel.objects.all().order_by('name')
+        channels = []
+        if self.request.user.is_staff:
+            channels = ContentChannel.objects.all()
+        else:
+            channel_ids = ContentChannelRun.objects\
+                            .filter(Q(started_by_user_token=self.request.user.cctoken) | Q(channel__followers=self.request.user))\
+                            .values_list('channel__id', flat=True).distinct()
+            channels = ContentChannel.objects.filter(pk__in=channel_ids)
+
+        channels = channels.annotate(last_run=Max('runs__modified_at')).order_by('-last_run')
         status_mapping = {}
 
         try:
@@ -227,6 +237,7 @@ class DashboardView(TemplateView):
                 "cl_flags": fmt_cl_flags(last_run),
                 "failed_count": failed and len(logs.get('critical')),
                 "warning_count": warnings and len(logs.get('error')),
+                "can_edit": self.request.user.is_staff or channel.runs.filter(started_by_user_token=self.request.user.cctoken).exists(),
             }
 
             context['channels'].append(channel_data)
@@ -310,6 +321,7 @@ class RunView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super(RunView, self).get_context_data(**kwargs)
         run = None
+
         if self.search_by_channel:
             channel_id = uuid.UUID(kwargs.get('channelid', ''))
             channel = ContentChannel.objects.get(channel_id=channel_id)
@@ -317,6 +329,8 @@ class RunView(TemplateView):
             if not channel.runs.exists():
                 context['channel_status'] = "New"
                 context['channel'] = channel
+                context["can_edit"] = self.request.user.is_staff or \
+                                channel.runs.filter(started_by_user_token=self.request.user.cctoken).exists()
                 context['logged_in'] = not self.request.user.is_anonymous()
                 context['saved_icon_class'] = 'fa-star' if self.request.user in channel.followers.all() else 'fa-star-o'
                 context['pr_url'] = "{}/pulls".format(channel.chef_repo_url.rstrip('/'))
@@ -353,6 +367,8 @@ class RunView(TemplateView):
         context['channel_run_status'] = context['channel_run_status'] or context.get('channel_status') or "created"
 
         context['channel'] = run.channel
+        context["can_edit"] = self.request.user.is_staff or \
+                                run.channel.runs.filter(started_by_user_token=self.request.user.cctoken).exists()
         context['channel_runs'] = run.channel.runs.all().order_by("-created_at")
         context['last_run_date'] = run.channel.get_last_run().modified_at
         context['logged_in'] = not self.request.user.is_anonymous()

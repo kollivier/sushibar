@@ -20,11 +20,13 @@
         </span>
         <h2>{{channel.name}} &nbsp;</h2>
       </div>
-      <div class="row" id="channel-management-area">
-        <div class="col-12 channel-actions">
-          <button class="btn btn-darkgray pull-right" data-toggle="modal" data-target="#channel-info-modal">MANAGE CHANNEL</button>
+      {% if can_edit %}
+        <div class="row" id="channel-management-area">
+          <div class="col-12 channel-actions">
+            <button class="btn btn-darkgray pull-right" data-toggle="modal" data-target="#channel-info-modal">MANAGE CHANNEL</button>
+          </div>
         </div>
-      </div>
+      {% endif %}
       <div id="alert-area" class="row">
         {% if channel_status == 'New' and channel.due_date %}
           <div class="alert alert-info col-12" role="alert">
@@ -32,41 +34,46 @@
               Please complete this sushi chef by <strong>{{channel.due_date|date:'N d'}}</strong>
             </span>
           </div>
-        {% else %}{% if channel.run_needed or channel.changes_needed or channel.new_run_complete %}
-          <div class="alert col-12 trello-action-error alert-danger hidden" role="alert"></div>
-          <div class="alert col-12 trello-action-success alert-success hidden" role="alert">
-            <b class="text">DONE</b><span class="pull-right fa fa-check"></span>
-          </div>
-          <div class="alert col-12 trello-action-alert {% if not channel.trello_url %}hidden{% endif %}" role="alert">
-            <span class="alert-prompt">
-              <i class="fa fa-exclamation-circle"></i> &nbsp;
-              {% if channel.changes_needed %}<strong>Changes Requested</strong> &nbsp;Review feedback and update this chef{% if channel.due_date %} by {{channel.due_date|date:'N d'}}{% endif %}
-              {% else %}{% if channel.run_needed %}<strong>Run Requested</strong> &nbsp;{% if channel.due_date %}Due by {{channel.due_date|date:'N d'}}{% endif %}
-              {% else %}<strong>New Run Detected</strong> &nbsp;{% if channel.due_date %}Channel is due {{channel.due_date|date:'N d'}}{% endif %}
-              {% endif %}{% endif %}
-              {% if channel.changes_needed %}
-                <a class="pull-right" href="#feedback">VIEW FEEDBACK</a>
-              {% else %}{% if channel.new_run_complete %}
-                <a class="pull-right trello-alert-mark-done">DONE</a>
-                <a class="pull-right trello-alert-request-publish">REQUEST PUBLISH</a>
-              {% else %}<i class="pull-right">Run chef to continue</i>
-              {% endif %}{% endif %}
-              {% if channel.new_run_complete %}<a class="pull-right trello-alert-flag-for-qa">FLAG FOR QA</a>{% endif %}
-            </span>
-            <span class="alert-processing hidden">
-              <b>PROCESSING...</b>
-              <i class="fa fa-spinner fa-pulse fa-fw pull-right"></i>
-            </span>
-          </div>
-        {% endif %}{% endif %}
-        <div class="alert col-12 trello-card-alert {% if channel.trello_url %}hidden{% endif %}" role="alert">
-          <span class="alert-prompt">
-            <i class="fa fa-exclamation-circle"></i> &nbsp;
-            <strong>No Trello card found</strong>
-            <a class="pull-right" data-toggle="modal" data-target="#channel-info-modal">ADD CARD</a>
-          </span>
-        </div>
+        {% else %}
+          {% if can_edit %}
+            {% if channel.run_needed or channel.changes_needed or channel.new_run_complete %}
+            <div class="alert col-12 trello-action-error alert-danger hidden" role="alert"></div>
+            <div class="alert col-12 trello-action-success alert-success hidden" role="alert">
+              <b class="text">DONE</b><span class="pull-right fa fa-check"></span>
+            </div>
+            <div class="alert col-12 trello-action-alert {% if not channel.trello_url %}hidden{% endif %}" role="alert">
+              <span class="alert-prompt">
+                <i class="fa fa-exclamation-circle"></i> &nbsp;
+                {% if channel.changes_needed %}<strong>Changes Requested</strong> &nbsp;Review feedback and update this chef{% if channel.due_date %} by {{channel.due_date|date:'N d'}}{% endif %}
+                {% else %}{% if channel.run_needed %}<strong>Run Requested</strong> &nbsp;{% if channel.due_date %}Due by {{channel.due_date|date:'N d'}}{% endif %}
+                {% else %}<strong>New Run Detected</strong> &nbsp;{% if channel.due_date %}Channel is due {{channel.due_date|date:'N d'}}{% endif %}
+                {% endif %}{% endif %}
+                {% if channel.changes_needed %}
+                  <a class="pull-right" href="#feedback">VIEW FEEDBACK</a>
+                {% else %}{% if channel.new_run_complete %}
+                  <a class="pull-right trello-alert-mark-done">DONE</a>
+                {% else %}<i class="pull-right">Run chef to continue</i>
+                {% endif %}{% endif %}
+                {% if channel.new_run_complete %}<a class="pull-right trello-alert-flag-for-qa">FLAG FOR QA</a>{% endif %}
+              </span>
+              <span class="alert-processing hidden">
+                <b>PROCESSING...</b>
+                <i class="fa fa-spinner fa-pulse fa-fw pull-right"></i>
+              </span>
+            </div>
+            {% endif %}{% endif %}
+            {% if request.user.is_staff %}
+            <div class="alert col-12 trello-card-alert {% if channel.trello_url %}hidden{% endif %}" role="alert">
+              <span class="alert-prompt">
+                <i class="fa fa-exclamation-circle"></i> &nbsp;
+                <strong>No Trello card found</strong>
+                <a class="pull-right" data-toggle="modal" data-target="#channel-info-modal">ADD CARD</a>
+              </span>
+           </div>
+           {% endif %}
+          {% endif %}
       </div>
+
     </div>
   </div>
   {% if channel_status == 'New' %}
@@ -214,7 +221,7 @@
     </div>
   {% endif %}
 </div>
-
+{% if can_edit %}
 <div class="modal action-modal start-modal" id="channel-info-modal" tabindex="-1" role="dialog">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
@@ -259,8 +266,10 @@
         </div>
         <div id="trello-embed" class="text-center {% if not channel.trello_url %}hidden{% endif %}">
           <div id="trello-update-card" class="trello-extras">
+            {% if request.user.is_staff %}
             <a class="link-gray card-action" id="trello-link-edit" title="Edit Trello Card URL" data-toggle="tooltip" data-placement="top"><i class="fa fa-pencil"></i></a>
             <a class="link-gray card-action" id="remove-trello-link" title="Remove Trello Card" data-toggle="tooltip" data-placement="top"><i class="fa fa-times"></i></a>
+            {% endif %}
           </div>
           <div id="trello-embed-wrapper">
             <blockquote class="trello-card-compact"><a href="{{channel.trello_url}}">Trello Card</a></blockquote>
@@ -271,7 +280,6 @@
             {% if request_storage_email %}<a class="btn btn-gray trello-action" id="trello-link-storage">Request Storage</a>{% endif %}
             {% if channel_status != 'New' %}
               <a class="btn btn-gray trello-action" id="trello-link-qa">Flag for QA</a>
-              <a class="btn btn-gray trello-action" id="trello-link-publish">Request Publish</a>
             {% endif %}
           </div>
           <div class="collapse" id="trello-comment-section">
@@ -289,12 +297,16 @@
             <a class="link-gray pull-left" id="trello-link-cancel" data-toggle="collapse" data-target="#trello-comment-section" aria-expanded="false" aria-controls="trello-comment-section">CLOSE</a>
           </div>
         </div>
-        <h5 id="trello-url-prompt" class="{% if channel.trello_url %}hidden{% endif %} text-center">Copy Trello URL here</h5>
-        <div class="text-center {% if channel.trello_url %}hidden{% endif %}" id="trello-link-wrapper">
-          <p id="trello-invalid-url" class="error-message">Invalid Trello URL</p>
-          <input type="text" placeholder="Trello card url..." id="trello-link-input" value="{% if channel.trello_url %}{{channel.trello_url}}{% endif %}">
-          <button class="btn btn-gray disabled" disabled id="submit-trello-link"><i class="fa fa-save"></i></button>
-        </div>
+        {% if request.user.is_staff %}
+          <h5 id="trello-url-prompt" class="trello_default_hide {% if channel.trello_url %}hidden{% endif %} text-center">Copy Trello URL here</h5>
+          <div class="trello_default_hide text-center {% if channel.trello_url %}hidden{% endif %}" id="trello-link-wrapper">
+            <p id="trello-invalid-url" class="error-message">Invalid Trello URL</p>
+              <input type="text" placeholder="Trello card url..." id="trello-link-input" value="{% if channel.trello_url %}{{channel.trello_url}}{% endif %}">
+            <button class="btn btn-gray disabled" disabled id="submit-trello-link"><i class="fa fa-save"></i></button>
+          </div>
+        {% else %}
+          <h5 class="trello_default_hide {% if channel.trello_url %}hidden{% endif %} text-center">Please wait for an administrator to set a Trello card</h5>
+        {% endif %}
         <br/>
       </div>
       <div class="modal-footer">
@@ -303,6 +315,7 @@
     </div>
   </div>
 </div>
+{% endif %}
 
 {% endblock %}
 {% block javascript %}
