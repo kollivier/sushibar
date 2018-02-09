@@ -22,6 +22,7 @@
         <option value="new">New Channels</option>
         <option value="changes_needed">Changes Needed</option>
         <option value="run_needed">Run Needed</option>
+        <option value="needs_review">Needs review</option>
         <option value="running">Running</option>
         <option value="listening">Listening</option>
         <option value="completed">Completed</option>
@@ -45,7 +46,17 @@
   {% for channel in channels %}
 
 
-  <div class="channel-row {% if channel.status != 'COMPLETED' and channel.status != 'Failed' %} running{% endif %}{% if channel.active %} listening{% endif %}{% if channel.status == 'COMPLETED' %} completed{% endif %}{% if channel.status == 'Failed' %} failed{% endif %}{% if channel.starred %} starred{% endif %}{% if channel.run_needed %} run_needed{% endif %}{% if channel.changes_needed %} changes_needed{% endif %}{% if channel.status == 'New' %} new{% else %} old{% endif %}" id="item-{{channel.id}}">
+  <div id="item-{{channel.id}}" class="channel-row {% spaceless %}
+          {% if channel.status != 'COMPLETED' and channel.status != 'Failed' %} running{% endif %}
+          {% if channel.active %} listening{% endif %}
+          {% if channel.status == 'COMPLETED' %} completed{% endif %}
+          {% if channel.status == 'Failed' %} failed{% endif %}
+          {% if channel.starred %} starred{% endif %}
+          {% if channel.run_needed %} run_needed{% endif %}
+          {% if channel.changes_needed %} changes_needed{% endif %}
+          {% if channel.status == 'New' %} new{% else %} old{% endif %}
+          {% if channel.ccstatus.name == 'Needs Review' %} needs_review{% endif %}
+          {% endspaceless %}">
     <div class="row">
       {% if channel.status == 'New' %}
         <div class="col-1 text-center"></div>
@@ -106,14 +117,21 @@
         <div class="col-2 text-center">
 
           <div class="dropdown">
-            <a class="dropdown-toggle" role="button" id="status-{{channel.id}}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="{{channel.ccstatus.helper}}">
-              {% if channel.status != 'Failed' and channel.status != 'COMPLETED' %}In Progress
-              {% else %}{% if channel.status == 'Failed' %}Failed
-              {% else %}{% if channel.ccstatus %}{{channel.ccstatus.name}}
-              {% else %}Active{% endif %}{% endif %}{% endif %}
+            <a id="status-{{channel.id}}" class="dropdown-toggle" role="button"
+               data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+               title="{{channel.ccstatus.helper}}">
+                  {% if channel.status != 'Failed' and channel.status != 'COMPLETED' %}
+                      In Progress
+                  {% elif channel.status == 'Failed' %}
+                      Failed
+                  {% elif channel.ccstatus %}
+                      {{channel.ccstatus.name}}
+                  {% else %}
+                      Active
+                  {% endif %}
             </a>
             <div class="dropdown-menu" aria-labelledby="status-{{channel.id}}">
-              <a class="dropdown-item">Last Run: <b>{{channel.last_run}}</b></a>
+              <a class="dropdown-item">Last Run: <b>{{channel.last_run_date}}</b></a>
               <a class="dropdown-item">Duration: <b>{{channel.duration}}</b></a>
               {% if channel.status == 'COMPLETED' %}
               <div class="dropdown-divider">&nbsp;</div>
@@ -127,13 +145,27 @@
         </div>
         <div class="col-3">
             <div class="progress">
-              <div class="progress-bar bg-{{channel.run_status}} channel-progress{% if channel.status == 'Failed' %} failed{% endif %}" role="progressbar" aria-valuenow="{{channel.status_pct}}" title="{{channel.status}}" aria-valuemin="0" aria-valuemax="100" style="width: {{channel.status_pct}}%;">{{channel.status}}</div>
+              <div class="progress-bar bg-{{channel.run_status}} channel-progress{% if channel.status == 'Failed' %} failed{% endif %}"
+                   role="progressbar" aria-valuenow="{{channel.status_pct}}"
+                   aria-valuemin="0" aria-valuemax="100" style="width: {{channel.status_pct}}%;"
+                   title="{{channel.status}}">{{channel.status}}</div>
             </div>
         </div>
         <div class="col-1 text-center">
           {% if channel.failed_count %}
-            <a class="errors" href="{% url 'runs' channel.last_run_id %}#logs" title="{{channel.failed_count}} Error{% if channel.failed_count > 1 %}s{% endif %}"><i class="fa fa-exclamation-circle"></i> {{channel.failed_count}}</a>
-          {% else %}{% if channel.warning_count %}<a class="warnings" href="{% url 'runs' channel.last_run_id %}#logs" title="{{channel.warning_count}} Warning{% if channel.warning_count > 1 %}s{% endif %}"><i class="fa fa-exclamation-triangle"></i> {{channel.warning_count}}</a>{% endif %}
+            <a class="errors" href="{% url 'runs' channel.last_run_id %}#logs"
+               title="{{channel.failed_count}} Error{% if channel.failed_count > 1 %}s{% endif %}">
+                  <i class="fa fa-exclamation-circle"></i>
+                  {{channel.failed_count}}
+            </a>
+          {% else %}
+            {% if channel.warning_count %}
+              <a class="warnings" href="{% url 'runs' channel.last_run_id %}#logs"
+                 title="{{channel.warning_count}} Warning{% if channel.warning_count > 1 %}s{% endif %}">
+                 <i class="fa fa-exclamation-triangle"></i>
+                 {{channel.warning_count}}
+              </a>
+            {% endif %}
           {% endif %}
         </div>
       {% endif %}

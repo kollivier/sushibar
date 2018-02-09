@@ -158,7 +158,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                             .values_list('channel__id', flat=True).distinct()
             channels = ContentChannel.objects.filter(pk__in=channel_ids)
 
-        channels = channels.annotate(last_run=Max('runs__modified_at')).order_by('-last_run')
+        channels = channels.annotate(last_run_date=Max('runs__modified_at')).order_by('-last_run_date')
         status_mapping = {}
 
         try:
@@ -226,7 +226,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                 "id": channel.channel_id.hex,
                 "ccstatus": get_status_for_mapping(channel, status_mapping, run=last_run),
                 "starred": starred,
-                "last_run": datetime.strftime(last_event.finished, "%b %d, %H:%M"),
+                "last_run_date": datetime.strftime(last_event.finished, "%b %d, %H:%M"),
                 "last_run_id": last_run.run_id,
                 "duration": str(timedelta(seconds=total_duration.seconds)),
                 "status": "Failed" if failed else last_event.name.replace("Status.","").replace("_", " "),
