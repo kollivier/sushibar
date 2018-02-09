@@ -156,10 +156,11 @@ def get_channel_status_bulk(run, channel_ids):
     return data
 
 
-def get_staged_diff(baruser, channel):
+def get_staged_diff(baruser, channel_id):
     pass
 # api/internal/get_staged_diff_internal
-# Returns a list of changes between the main tree and the staged tree (Includes date/time created, file size, # of each content kind, # of questions, and # of subtitles)
+# Returns a list of changes between the main tree and the staged tree
+# (Includes date/time created, file size, # of each content kind, # of questions, and # of subtitles)
 # POST
 # Header: ---
 # Body:
@@ -175,64 +176,31 @@ def get_staged_diff(baruser, channel):
 #     }
 # ]
 
-def compare_trees(baruser, channel):
-    pass
-# api/internal/compare_trees
-# Returns a dict of new nodes and deleted nodes between either the staging tree or main tree and the previous tree (use staging flag to indicate whether to use staging or main)
-# POST
-# Header: ---
-# Body:
-# {
-#     "channel_id": "{uuid.hex}",
-#     "staging": boolean
-# }
-#
-#
-# {
-#     "success" : True,
-#     "new" : {
-#         "{node_id}" : {
-#              "title" : "{str}",
-#              "kind" : "{str}",
-#              "file_size" : {number}
-#         },
-#     },
-#     "deleted" : {
-#         "{node_id}" : {
-#              "title" : "{str}",
-#              "kind" : "{str}",
-#              "file_size" : {number}
-#         }
-#     }
-# }
-#
-# Example:
-# {
-#     "success" : True,
-#     "new" : {
-#         "aaa" : {
-#              "title" : "Node Title",
-#              "kind" : "topic",
-#              "file_size" : 0
-#         },
-#         "bbb" : {
-#              "title" : "Node Title 2",
-#              "kind" : "audio",
-#              "file_size" : 100
-#         }
-#     },
-#     "deleted" : {
-#         "ccc" : {
-#              "title" : "Node Title 3",
-#              "kind" : "video",
-#              "file_size" : 999999
-#         }
-#     }
-# }
 
-
-
-
+def compare_trees(baruser, channel_id, tree='staging'):
+    """
+    POST /api/internal/compare_trees
+    Returns a dict of new nodes and deleted nodes between either:
+     - the staging tree and the previous tree (when staging=true)
+     - or main tree and the previous tree (when staging=false)
+    """
+    staging = True if tree == 'staging' else False
+    try:
+        request = requests.post(
+                "%s/api/internal/compare_trees" % settings.DEFAULT_STUDIO_SERVER,
+                data=json.dumps({
+                    "channel_id": channel_id,
+                    "staging": staging,
+                }),
+                headers={'Authorization': 'Token %s' % baruser.cctoken,
+                         'Content-Type': 'application/json'})
+        if request.ok:
+            return request.json()
+        else:
+            print('ERROR', request.status)
+    except requests.ConnectionError as e:   # fallback when ccserver can't be reached
+        pass
+    return {}
 
 def ccserver_get_topic_tree(run):
     data = []
@@ -311,4 +279,3 @@ def ccserver_check_channel_staged(run):
 #         'file_size': 145990
 #     },
 # ]
-
