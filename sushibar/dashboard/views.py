@@ -6,7 +6,7 @@ import uuid
 from channels import Group
 from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.core.urlresolvers import reverse_lazy
+from django.urls import reverse_lazy
 from django.db.models import Q, Max
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseRedirect
 from django.shortcuts import redirect
@@ -331,7 +331,7 @@ class RunView(TemplateView):
                 context['channel'] = channel
                 context["can_edit"] = self.request.user.is_staff or \
                                 channel.runs.filter(started_by_user_token=self.request.user.cctoken).exists()
-                context['logged_in'] = not self.request.user.is_anonymous()
+                context['logged_in'] = not self.request.user.is_anonymous
                 context['saved_icon_class'] = 'fa-star' if self.request.user in channel.followers.all() else 'fa-star-o'
                 context['pr_url'] = "{}/pulls".format(channel.chef_repo_url.rstrip('/'))
                 context['request_storage_email'] = self.request.user.is_authenticated() and self.request.user.email
@@ -371,7 +371,7 @@ class RunView(TemplateView):
                                 run.channel.runs.filter(started_by_user_token=self.request.user.cctoken).exists()
         context['channel_runs'] = run.channel.runs.all().order_by("-created_at")
         context['last_run_date'] = run.channel.get_last_run().modified_at
-        context['logged_in'] = not self.request.user.is_anonymous()
+        context['logged_in'] = not self.request.user.is_anonymous
         context['run'] = run
         context['run_stages'] = []
         total_time = timedelta()

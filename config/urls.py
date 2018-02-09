@@ -28,7 +28,7 @@ urlpatterns = [
         template_name='auth/signin.html',
         authentication_form=SushiBarAuthenticationForm), name='sushibar_signin'),
     url(r'^signout/$', auth_views.LogoutView.as_view(template_name='auth/signed_out.html'), name='sushibar_signout'),
-    url(r'^users/', include('sushibar.users.urls', namespace='users')),
+    url(r'^users/', include('sushibar.users.urls')),
 
     # SushiChef API endpoints
     url(r'^api/', include('sushibar.runs.urls')),

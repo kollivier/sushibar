@@ -2,6 +2,9 @@ from django.conf.urls import url
 
 from . import views
 
+app_name = 'users'  # For Django 2+
+
+
 urlpatterns = [
     url(
         regex=r'^$',
