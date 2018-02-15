@@ -4,8 +4,8 @@ from sushibar.ccserverlib.services import ccserver_get_node_children, get_channe
 
 def set_run_options(run):
 	run.extra_options = run.extra_options or {}
-	status = get_channel_status_bulk(run, [run.channel.channel_id.hex])
-	status = status['statuses'].get(run.channel.channel_id.hex) if status else None
+	statuses_dict = get_channel_status_bulk(run.content_server, run.started_by_user_token, [run.channel.channel_id.hex])
+	status = statuses_dict.get(run.channel.channel_id.hex) if statuses_dict else None
 	run.extra_options.update({
 		'staged': status == 'staged',
 		'published': status =='published'

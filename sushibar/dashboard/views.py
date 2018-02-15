@@ -1,3 +1,4 @@
+from collections import defaultdict
 from datetime import datetime, timedelta, timezone
 import json
 import re
@@ -103,6 +104,51 @@ def get_status(status, run=None, channel_id=None):
     }
     return STATUS.get(status)
 
+
+def get_bulk_status_mapping_for_channels_as_baruser(channels, baruser):
+    """
+    Makes "bulk requests" to Studio server to get channel status for all the
+    channels we're about to display on the dashboard.
+    Assumptions: baruser has access to 
+    """
+    status_mapping = {}
+    # Group requests based on the Studio instance that we need to query
+    channels_by_studio_server = defaultdict(list)
+    for channel in channels:
+        last_run = channels.exists() and channel.get_last_run()
+        if last_run:
+            studio_server = last_run.content_server
+            if studio_server:
+                channels_by_studio_server[studio_server].append(channel)
+    #
+    # Do batchs requests for statuses from all Kolibri servers
+    for studio_server, channels in channels_by_studio_server.items():
+        # print('Making bulk request to', studio_server)
+        channel_ids = [c.channel_id.hex for c in channels]
+        #
+        # Currently (mid-Feb) get_channel_status_bulk errors out when queried about
+        # any `channel_id`s that studio doesn't know about. A better behavior is
+        # to ignore uknown channel_ids and return statuses for all the ones i knows about.
+        # The endpoint /api/internal/get_channel_status_bulk is needed for performance
+        # when reasons when rendering the DashboardView listing page.
+        #    |
+        #    |
+        # UNCOMMENT the next 2 lines when get_channel_status_bulk fixed:
+        # statuses_dict = get_channel_status_bulk(studio_server, baruser.cctoken, channel_ids)
+        # status_mapping = status_mapping.update(statuses_dict)
+        #
+        #    |
+        #    |
+        # TEMPORARY WORKAROUND (remove the next 3 lines when get_channel_status_bulk fixed)
+        for channel_id in channel_ids:
+            statuses_dict = get_channel_status_bulk(studio_server, baruser.cctoken, [channel_id])
+            status_mapping.update(statuses_dict)
+
+    return status_mapping
+
+
+
+
 # DASHABOARD ###################################################################
 class DashboardView(LoginRequiredMixin, TemplateView):
 
@@ -159,25 +205,24 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             channels = ContentChannel.objects.filter(pk__in=channel_ids)
 
         channels = channels.annotate(last_run_date=Max('runs__modified_at')).order_by('-last_run_date')
-        status_mapping = {}
 
+        # Try to get channel status information from Kolibri Studio
+        status_mapping = {}   # { "<channel_id>": "{{status_str}}", ... }
         try:
-            first_run = channels.exists() and channels.first().get_last_run()
-            status = get_channel_status_bulk(first_run, [c.hex for c in channels.values_list('channel_id', flat=True)])
-            if status.get("success"):
-                status_mapping = status['statuses']
-        except Exception:
-            pass
+            status_mapping = get_bulk_status_mapping_for_channels_as_baruser(channels, self.request.user)
+        except Exception as e:
+            print('ERROR during get_bulk_status_mapping_for_channels_as_baruser, continuing...', e)
 
-        # TODO(arvnd): This can very easily be optimized by
-        # querying the runs table directly.
+        # MAIN LOOP
+        ########################################################################
+        # TODO(arvnd): This can very easily be optimized by querying the runs table directly.
         for channel in channels:
-            # TODO(arvnd): add active bit to channel model and
-            # split on that.
+            
+            # Get the most recent run for the channel
             try:
                 last_run = channel.runs.latest("created_at")
             except ContentChannelRun.DoesNotExist:
-                print("No runs for channel %s " % channel.name)
+                print("No runs for channel %s " % channel.name, "continuing...")
                 channel_data = {
                     "channel": channel.name,
                     "due_date": channel.due_date,
@@ -195,14 +240,14 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             try:
                 last_event = last_run.events.latest("finished")
             except ChannelRunStage.DoesNotExist:
-                print("No stages for run %s" % last_run.run_id.hex)
+                print("No stages for run %s" % last_run.run_id.hex, "continuing...")
                 continue
 
             progress = REDIS.hgetall(last_run.run_id.hex)
             total_duration = sum((event.duration for event in last_run.events.all()), timedelta())
 
+            # Channels with errors are flagged in YELLLOW, channels with critical errors in RED
             logs = last_run.get_logs()
-
             failed = any(logs.get('critical'))
             warnings = any(logs.get('error'))
 
@@ -212,6 +257,9 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             active = True if len(listeners) > 0 else False
 
             starred = self.request.user.is_authenticated and self.request.user.saved_channels.filter(channel_id=channel.channel_id).exists()
+
+            # Channel status according to Kolibri Studio (main soruce of truth)
+            ccstatus = get_status_for_mapping(channel, status_mapping, run=last_run)
 
             channel_data = {
                 "channel": channel.name,
@@ -239,7 +287,6 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                 "warning_count": warnings and len(logs.get('error')),
                 "can_edit": self.request.user.is_staff or channel.runs.filter(started_by_user_token=self.request.user.cctoken).exists(),
             }
-
             context['channels'].append(channel_data)
 
         return context
@@ -333,8 +380,9 @@ class RunView(TemplateView):
                                 channel.runs.filter(started_by_user_token=self.request.user.cctoken).exists()
                 context['logged_in'] = not self.request.user.is_anonymous
                 context['saved_icon_class'] = 'fa-star' if self.request.user in channel.followers.all() else 'fa-star-o'
-                context['pr_url'] = "{}/pulls".format(channel.chef_repo_url.rstrip('/'))
-                context['request_storage_email'] = self.request.user.is_authenticated() and self.request.user.email
+                if channel.chef_repo_url:
+                    context['pr_url'] = "{}/pulls".format(channel.chef_repo_url.rstrip('/'))
+                context['request_storage_email'] = self.request.user.is_authenticated and self.request.user.email
                 return context
 
             run = channel.runs.latest("created_at")
@@ -352,12 +400,11 @@ class RunView(TemplateView):
                 break
 
         try:
-            status = get_channel_status_bulk(run, [run.channel.channel_id.hex])
-            if status.get('success'):
-                status = status['statuses'][run.channel.channel_id.hex]
-                context['channel_status'] = status
-                context['actions'] = get_status(status, run=run)['actions']
-
+            status_dict = get_channel_status_bulk(run.content_server, run.started_by_user_token, [run.channel.channel_id.hex])
+            if status_dict:
+                channel_status = status_dict[run.channel.channel_id.hex]
+                context['channel_status'] = channel_status
+                context['actions'] = get_status(channel_status, run=run)['actions']
         except Exception:
             pass
 
@@ -427,6 +474,6 @@ class RunView(TemplateView):
                 continue
 
         context['channel_url'] = "%s/%s/edit" % (run.channel.default_content_server, run.channel.channel_id.hex)
-        context['request_storage_email'] = run.started_by_user or self.request.user.is_authenticated() and self.request.user.email
+        context['request_storage_email'] = run.started_by_user or self.request.user.is_authenticated and self.request.user.email
 
         return context
