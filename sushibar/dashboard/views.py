@@ -369,6 +369,7 @@ class RunView(TemplateView):
         context = super(RunView, self).get_context_data(**kwargs)
         run = None
 
+        # ROUTE = /channels/{{channel_id}}  ####################################
         if self.search_by_channel:
             channel_id = uuid.UUID(kwargs.get('channelid', ''))
             channel = ContentChannel.objects.get(channel_id=channel_id)
@@ -376,8 +377,7 @@ class RunView(TemplateView):
             if not channel.runs.exists():
                 context['channel_status'] = "New"
                 context['channel'] = channel
-                context["can_edit"] = self.request.user.is_staff or \
-                                channel.runs.filter(started_by_user_token=self.request.user.cctoken).exists()
+                context["can_edit"] = self.request.user.is_staff
                 context['logged_in'] = not self.request.user.is_anonymous
                 context['saved_icon_class'] = 'fa-star' if self.request.user in channel.followers.all() else 'fa-star-o'
                 if channel.chef_repo_url:
@@ -386,6 +386,8 @@ class RunView(TemplateView):
                 return context
 
             run = channel.runs.latest("created_at")
+
+        # ROUTE = /runs/{{run_id}}  ############################################
         else:
             run_id = uuid.UUID(kwargs.get('runid', ''))
             run = ContentChannelRun.objects.get(run_id=run_id)
@@ -408,18 +410,25 @@ class RunView(TemplateView):
         except Exception:
             pass
 
+        context['channel'] = run.channel
+        context['run'] = run
+
         run.extra_options = run.extra_options or {}
         context['channel_run_status'] = "staged" if run.extra_options.get("staged") else None
         context['channel_run_status'] = "published" if run.extra_options.get("published") else None
         context['channel_run_status'] = context['channel_run_status'] or context.get('channel_status') or "created"
 
-        context['channel'] = run.channel
-        context["can_edit"] = self.request.user.is_staff or \
-                                run.channel.runs.filter(started_by_user_token=self.request.user.cctoken).exists()
+        baruser = self.request.user
+        context['logged_in'] = not baruser.is_anonymous
+        if baruser.is_anonymous:
+            context["can_edit"] = False
+        else:
+            baruser_has_runs = run.channel.runs.filter(started_by_user_token=baruser.cctoken).exists()
+            context["can_edit"] = self.request.user.is_staff or baruser_has_runs
+
         context['channel_runs'] = run.channel.runs.all().order_by("-created_at")
         context['last_run_date'] = run.channel.get_last_run().modified_at
-        context['logged_in'] = not self.request.user.is_anonymous
-        context['run'] = run
+
         context['run_stages'] = []
         total_time = timedelta()
         for idx, stage in enumerate(run.events.order_by('finished').all()):
@@ -446,8 +455,8 @@ class RunView(TemplateView):
                 count['size'] = next(size for size in context['resource_sizes'] if size['name'] == count['name'])
                 context['combined_stats'].append(count)
 
-        if self.request.user in run.channel.followers.all():
-            # closed star if the user has already saved this.
+        if baruser in run.channel.followers.all():
+            # closed star if the baruser has saved this channel
             context['saved_icon_class'] = 'fa-star'
         else:
             context['saved_icon_class'] = 'fa-star-o'

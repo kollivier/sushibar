@@ -143,22 +143,20 @@ def get_channel_status_bulk(content_server, cctoken, channel_ids):
     """
     no_data = {}
     try:
-        print('makking request to', content_server,  'with token', cctoken, 'for channels', channel_ids)
         response = requests.post(
                 "%s/api/internal/get_channel_status_bulk" % content_server,
                 data=json.dumps({"channel_ids": channel_ids}),
                 headers={'Authorization': 'Token %s' % cctoken,
                          'Content-Type': 'application/json'})
-        print('request response', response.content)
         if response.ok:
             response_data = response.json()
             if response_data['success']:
                 return response_data['statuses']
     except requests.ConnectionError:   # fallback when ccserver can't be reached
         print('ConnectionError, returning default empty dict {}')
-        pass
-    print('get_channel_status_bulk no_data = ', no_data)
+
     return no_data
+
 
 
 def get_staged_diff(baruser, channel_id):
