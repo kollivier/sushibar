@@ -3,7 +3,7 @@ version: "2"
 
 
 volumes:
-  postgres_data: {}
+  postgres_data: {}  # TODO(ivan): change to be a directory on host machine for host-backed backups
   postgres_backup: {}
   static: {}
   media: {}

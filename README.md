@@ -186,6 +186,20 @@ Volumes check
 
 
 
+Running DB backups
+------------------
+
+    docker exec -ti sushibar-postgres /usr/local/bin/backup
+    # watch and record DB_backup_filename
+    docker cp sushibar-postgres:/backups/{{DB_backup_filename}} ~/Desktop/
+
+
+Connecting to docker machine
+----------------------------
+
+    ssh -i ~/.docker/machine/machines/gcpsushibarhost/id_rsa  35.185.105.222
+
+
 Restart from scratch
 --------------------
 
@@ -203,7 +217,3 @@ Restart from scratch
     docker-compose -f production.yml  build --no-cache
 
     docker-compose -f production.yml  up  # prints combined strout from all containers
-
-
-
-

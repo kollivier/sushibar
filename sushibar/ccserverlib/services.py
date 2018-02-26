@@ -75,8 +75,6 @@ def ccserver_authenticate_user(cctoken, ccemail=None):
       - `status='failure'` if `cctoken` is not recognized as as a valid token
          for any CCUser in this case `email_or_msg` (str) is the reason for the failure.
     """
-    print('in ccserver_authenticate_user')
-
     ccserver_base_url = settings.DEFAULT_STUDIO_SERVER
     auth_url = "%s/api/internal/authenticate_user_internal" % ccserver_base_url
     try:
@@ -98,8 +96,6 @@ def ccserver_authenticate_user(cctoken, ccemail=None):
 
     except requests.ConnectionError: # fallback when ccserver can't be reached
         return ('failure', 'Connection error: could not reach the ccserver.')
-
-# (returns 403 if not authorized)
 
 
 
@@ -138,28 +134,36 @@ def activate_channel(baruser, channel_id):
     """
     return post_request(baruser, ACTIVATE_CHANNEL_URL, data={"channel_id": channel_id})
 
-def get_channel_status_bulk(run, channel_ids):
+
+
+def get_channel_status_bulk(content_server, cctoken, channel_ids):
     """
-        returns channel's status (use token so anyone can view channels' statuses)
+    Retrieve a dict of channel statuses in bulk from Kolibri Studio.
+    Uses authorization Token `cctoken` to make the request.
     """
-    data = []
+    no_data = {}
     try:
-        request = requests.post(
-                "%s/api/internal/get_channel_status_bulk" % run.content_server,
+        response = requests.post(
+                "%s/api/internal/get_channel_status_bulk" % content_server,
                 data=json.dumps({"channel_ids": channel_ids}),
-                headers={'Authorization': 'Token %s' % run.started_by_user_token,
+                headers={'Authorization': 'Token %s' % cctoken,
                          'Content-Type': 'application/json'})
-        if request.ok:
-            return request.json()
+        if response.ok:
+            response_data = response.json()
+            if response_data['success']:
+                return response_data['statuses']
     except requests.ConnectionError:   # fallback when ccserver can't be reached
-        pass
-    return data
+        print('ConnectionError, returning default empty dict {}')
+
+    return no_data
 
 
-def get_staged_diff(baruser, channel):
+
+def get_staged_diff(baruser, channel_id):
     pass
 # api/internal/get_staged_diff_internal
-# Returns a list of changes between the main tree and the staged tree (Includes date/time created, file size, # of each content kind, # of questions, and # of subtitles)
+# Returns a list of changes between the main tree and the staged tree
+# (Includes date/time created, file size, # of each content kind, # of questions, and # of subtitles)
 # POST
 # Header: ---
 # Body:
@@ -175,64 +179,31 @@ def get_staged_diff(baruser, channel):
 #     }
 # ]
 
-def compare_trees(baruser, channel):
-    pass
-# api/internal/compare_trees
-# Returns a dict of new nodes and deleted nodes between either the staging tree or main tree and the previous tree (use staging flag to indicate whether to use staging or main)
-# POST
-# Header: ---
-# Body:
-# {
-#     "channel_id": "{uuid.hex}",
-#     "staging": boolean
-# }
-#
-#
-# {
-#     "success" : True,
-#     "new" : {
-#         "{node_id}" : {
-#              "title" : "{str}",
-#              "kind" : "{str}",
-#              "file_size" : {number}
-#         },
-#     },
-#     "deleted" : {
-#         "{node_id}" : {
-#              "title" : "{str}",
-#              "kind" : "{str}",
-#              "file_size" : {number}
-#         }
-#     }
-# }
-#
-# Example:
-# {
-#     "success" : True,
-#     "new" : {
-#         "aaa" : {
-#              "title" : "Node Title",
-#              "kind" : "topic",
-#              "file_size" : 0
-#         },
-#         "bbb" : {
-#              "title" : "Node Title 2",
-#              "kind" : "audio",
-#              "file_size" : 100
-#         }
-#     },
-#     "deleted" : {
-#         "ccc" : {
-#              "title" : "Node Title 3",
-#              "kind" : "video",
-#              "file_size" : 999999
-#         }
-#     }
-# }
 
-
-
-
+def compare_trees(baruser, channel_id, tree='staging'):
+    """
+    POST /api/internal/compare_trees
+    Returns a dict of new nodes and deleted nodes between either:
+     - the staging tree and the previous tree (when staging=true)
+     - or main tree and the previous tree (when staging=false)
+    """
+    staging = True if tree == 'staging' else False
+    try:
+        request = requests.post(
+                "%s/api/internal/compare_trees" % settings.DEFAULT_STUDIO_SERVER,
+                data=json.dumps({
+                    "channel_id": channel_id,
+                    "staging": staging,
+                }),
+                headers={'Authorization': 'Token %s' % baruser.cctoken,
+                         'Content-Type': 'application/json'})
+        if request.ok:
+            return request.json()
+        else:
+            print('ERROR', request.status)
+    except requests.ConnectionError as e:   # fallback when ccserver can't be reached
+        pass
+    return {}
 
 def ccserver_get_topic_tree(run):
     data = []
@@ -311,4 +282,3 @@ def ccserver_check_channel_staged(run):
 #         'file_size': 145990
 #     },
 # ]
-
