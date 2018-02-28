@@ -2,10 +2,11 @@ Sushi bar
 =========
 The place where all the sushi chefs hang out.
 
+
 Features
 --------
   - Dashboard to monitor chefs' progress, logs, and run history
-  - Remote control of a chefs started in daemon mode
+  - Remote control of a chefs started with the `--daemon` flag
 
 
 
