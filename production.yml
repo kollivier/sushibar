@@ -63,9 +63,20 @@ services:
       - media:/media
     depends_on:
       - redis
-    command: /start_worker.sh
+    command: /start_asgi_worker.sh
     env_file: ./credentials/production.env
 
+  celery-worker:
+    container_name: celery-worker
+    build:
+      context: .
+      dockerfile: ./compose/django/Dockerfile-prod
+    volumes:
+      - media:/media
+    depends_on:
+      - redis
+    command: /start_celery_worker.sh
+    env_file: ./credentials/production.env
 
   postgres:
     container_name: sushibar-postgres

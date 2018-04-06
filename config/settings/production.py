@@ -213,12 +213,14 @@ DEFAULT_STUDIO_SERVER = get_env('DEFAULT_STUDIO_SERVER', 'https://studio.learnin
 
 # Celery settings
 # ------------------------------------------------------------------------------
-BROKER_URL = "redis://:{hostname}:/{db}".format(
-    hostname='os.getenv("CELERY_BROKER_ENDPOINT")',
+BROKER_URL = "redis://{hostname}:{port}/{db}".format(
+    hostname=os.getenv("CELERY_BROKER_ENDPOINT"),
+    port=os.getenv("CELERY_REDIS_PORT"),
     db=os.getenv("CELERY_REDIS_DB")
 ) or BROKER_URL
-CELERY_RESULT_BACKEND = "redis://:{hostname}:/{db}".format(
+CELERY_RESULT_BACKEND = "redis://{hostname}:{port}/{db}".format(
     hostname=os.getenv("CELERY_RESULT_BACKEND_ENDPOINT"),
+    port=os.getenv("CELERY_REDIS_PORT"),
     db=os.getenv("CELERY_REDIS_DB")
 ) or CELERY_RESULT_BACKEND
 CELERY_TIMEZONE = os.getenv("CELERY_TIMEZONE") or CELERY_TIMEZONE

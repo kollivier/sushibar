@@ -42,3 +42,7 @@ requests==2.18.1
 # Authentication for Google API
 gspread==0.6.2
 google-api-python-client==1.6.4
+
+
+# task queue
+celery==4.1.0

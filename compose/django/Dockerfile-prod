@@ -10,12 +10,14 @@ RUN pip install --no-cache-dir -r /requirements/production.txt \
 COPY ./compose/django/entrypoint.sh /entrypoint.sh
 COPY ./compose/django/start_gunicorn.sh /start_gunicorn.sh
 COPY ./compose/django/start_daphne.sh /start_daphne.sh
-COPY ./compose/django/start_worker.sh /start_worker.sh
+COPY ./compose/django/start_asgi_worker.sh /start_asgi_worker.sh
+COPY ./compose/django/start_celery_worker.sh /start_celery_worker.sh
 
 RUN chmod +x /entrypoint.sh \
     && chmod +x /start_gunicorn.sh \
     && chmod +x /start_daphne.sh \
-    && chmod +x /start_worker.sh
+    && chmod +x /start_asgi_worker.sh \
+    && chmod +x /start_celery_worker.sh
 
 
 COPY . /app
@@ -27,7 +29,8 @@ COPY . /app
 #    && chown django /entrypoint.sh \
 #    && chown django /start_gunicorn.sh \
 #    && chown django /start_daphne.sh \
-#    && chown django /start_worker.sh \
+#    && chown django /start_asgi_worker.sh \
+#    && chown django /start_celery_worker.sh
 #
 # RUN chown -R django /app
 # USER django
