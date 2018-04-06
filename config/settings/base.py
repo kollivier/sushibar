@@ -294,7 +294,6 @@ MMVP_REDIS_TEST_DB = 1
 
 # Sushibar specific settings
 # ------------------------------------------------------------------------------
-
 DEFAULT_STUDIO_SERVER = get_env('DEFAULT_STUDIO_SERVER', 'https://develop.contentworkshop.learningequality.org')
 
 
@@ -314,3 +313,14 @@ GOOGLE_QA_TEMPLATE_ID = get_env('GOOGLE_QA_TEMPLATE_ID', default='13neY4jW6EFKyl
 TARGET_FOLDER_ID = get_env('TARGET_FOLDER_ID', default="0BziX9-4A2RIIQTFDX2FQeWV4dVU")
 LOCAL_DEV_DEFAULT_DOMAIN = None   # set to something like `92832de0.ngrok.io` for testing webhooks
 
+
+
+# Celery settings
+# ------------------------------------------------------------------------------
+CELERY_ACCEPT_CONTENT = ['application/json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+# the following values will be overwritren in production settings
+BROKER_URL = 'redis://localhost:6379/6'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/6'
+CELERY_TIMEZONE = 'America/Los_Angeles'

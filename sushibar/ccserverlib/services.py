@@ -219,13 +219,17 @@ def ccserver_get_topic_tree(run):
         pass
     return data
 
-def ccserver_get_node_children(run, node_id=None):
+def ccserver_get_node_children(run_dict, node_id=None):
+    """
+    Retrieve from Kolibri Studio json data for children of `node_id` for the run
+    info provided in `run_dict`. If node_id is None, we retrieve the channel root.
+    """
     data = []
     try:
         request = requests.post(
-                "%s/api/internal/get_node_tree_data" % run.content_server,
-                data=json.dumps({"node_id" : node_id, "channel_id": run.channel.channel_id.hex}),
-                headers={'Authorization': 'Token %s' % run.started_by_user_token,
+                "%s/api/internal/get_node_tree_data" % run_dict['content_server'],
+                data=json.dumps({"node_id" : node_id, "channel_id": run_dict['channel_id']}),
+                headers={'Authorization': 'Token %s' % run_dict['started_by_user_token'],
                          'Content-Type': 'application/json'})
         if request.ok:
             data = request.json().get("tree", [])

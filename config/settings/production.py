@@ -202,12 +202,24 @@ LOGGING = {
 
 # Your production stuff: Below this line define 3rd party library settings
 # ------------------------------------------------------------------------------
-
 # Production media in docker volume `media`
 MEDIA_ROOT = '/media'
 
 
 # Sushibar specific settings
 # ------------------------------------------------------------------------------
-
 DEFAULT_STUDIO_SERVER = get_env('DEFAULT_STUDIO_SERVER', 'https://studio.learningequality.org')
+
+
+# Celery settings
+# ------------------------------------------------------------------------------
+BROKER_URL = "redis://:{hostname}:/{db}".format(
+    hostname='os.getenv("CELERY_BROKER_ENDPOINT")',
+    db=os.getenv("CELERY_REDIS_DB")
+) or BROKER_URL
+CELERY_RESULT_BACKEND = "redis://:{hostname}:/{db}".format(
+    hostname=os.getenv("CELERY_RESULT_BACKEND_ENDPOINT"),
+    db=os.getenv("CELERY_REDIS_DB")
+) or CELERY_RESULT_BACKEND
+CELERY_TIMEZONE = os.getenv("CELERY_TIMEZONE") or CELERY_TIMEZONE
+
