@@ -19,3 +19,5 @@ def load_tree_for_channel_task(run_dict):
     """
     print('load_tree_for_channel_task received run_dict', run_dict)
     load_tree_for_channel(run_dict)
+    # intentionally ignoring the return value (since json data is saved to disk)
+

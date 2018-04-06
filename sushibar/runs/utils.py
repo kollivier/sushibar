@@ -19,16 +19,17 @@ def load_tree_for_channel(run_dict):
     channels, so we do it as background task to avoid timouts and the notorious
     sushi-eating cat being show to users!
     """
-    tree = load_children_for_node(run_dict)
+    tree = recusive_load_children_for_node(run_dict)
     with open(run_dict['tree_data_path'], 'w+') as fout:
         json.dump(tree, fout)
+    return tree
 
-def load_children_for_node(run_dict, node_id=None):
+def recusive_load_children_for_node(run_dict, node_id=None):
     tree = []
     children = ccserver_get_node_children(run_dict, node_id=node_id)
     for child in children:
         if child.get('node_id'):
-            child.update({"children": load_children_for_node(run_dict, node_id=child['node_id'])})
+            child.update({"children": recusive_load_children_for_node(run_dict, node_id=child['node_id'])})
         tree.append(child)
     return tree
 

@@ -206,18 +206,20 @@ def compare_trees(baruser, channel_id, tree='staging'):
     return {}
 
 def ccserver_get_topic_tree(run):
-    data = []
-    try:
-        request = requests.post(
-                "%s/api/internal/get_tree_data" % run.content_server,
-                data=json.dumps({"channel_id" : run.channel.channel_id.hex,}),
-                headers={'Authorization': 'Token %s' % run.started_by_user_token,
-                         'Content-Type': 'application/json'})
-        if request.ok:
-            data = request.json().get("tree", [])
-    except requests.ConnectionError:   # fallback when ccserver can't be reached
-        pass
-    return data
+    """
+    This used to call the API endpoint `/api/internal/get_tree_data` but it was
+    not reliable (request times out for large channels), so we're replacing it
+    with a multiple calls to `/api/internal/get_node_tree_data` (defined below).
+    """
+    from sushibar.runs.utils import load_tree_for_channel
+    run_dict = dict(
+        content_server=run.content_server,
+        channel_id=run.channel.channel_id.hex,
+        started_by_user_token=run.started_by_user_token,
+        tree_data_path=run.get_tree_data_path(),
+    )
+    tree_data = load_tree_for_channel(run_dict)
+    return tree_data
 
 def ccserver_get_node_children(run_dict, node_id=None):
     """
