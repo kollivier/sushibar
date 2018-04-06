@@ -202,8 +202,9 @@ LOGGING = {
 
 # Your production stuff: Below this line define 3rd party library settings
 # ------------------------------------------------------------------------------
-# Production media in docker volume `media`
+# Production media is docker volume `media` which is attached to /media in conainers
 MEDIA_ROOT = '/media'
+TREES_DIR = '/media/trees'
 
 
 # Sushibar specific settings
