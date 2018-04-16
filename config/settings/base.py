@@ -10,7 +10,7 @@ from os.path import abspath, dirname, join
 # Build sushibar paths starting at the git root like this: join(ROOT_DIR, ...)
 ROOT_DIR = dirname(dirname(dirname(abspath(__file__))))
 APPS_DIR = join(ROOT_DIR, 'sushibar')
-TREES_DIR = join(APPS_DIR, 'trees')
+
 
 def get_env(var, default=None):
     """
@@ -208,6 +208,7 @@ STATICFILES_FINDERS = [
 # ------------------------------------------------------------------------------
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#media-root
 MEDIA_ROOT = join(ROOT_DIR, 'media')
+TREES_DIR = join(ROOT_DIR, 'media/trees')
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#media-url
 MEDIA_URL = '/media/'
@@ -294,7 +295,6 @@ MMVP_REDIS_TEST_DB = 1
 
 # Sushibar specific settings
 # ------------------------------------------------------------------------------
-
 DEFAULT_STUDIO_SERVER = get_env('DEFAULT_STUDIO_SERVER', 'https://develop.contentworkshop.learningequality.org')
 
 
@@ -314,3 +314,14 @@ GOOGLE_QA_TEMPLATE_ID = get_env('GOOGLE_QA_TEMPLATE_ID', default='13neY4jW6EFKyl
 TARGET_FOLDER_ID = get_env('TARGET_FOLDER_ID', default="0BziX9-4A2RIIQTFDX2FQeWV4dVU")
 LOCAL_DEV_DEFAULT_DOMAIN = None   # set to something like `92832de0.ngrok.io` for testing webhooks
 
+
+
+# Celery settings
+# ------------------------------------------------------------------------------
+CELERY_ACCEPT_CONTENT = ['application/json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+# the following values will be overwritren in production settings
+BROKER_URL = 'redis://localhost:6379/6'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/6'
+CELERY_TIMEZONE = 'America/Los_Angeles'

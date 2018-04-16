@@ -22,10 +22,12 @@ from .serializers import ChannelRunStageCreateSerializer, ChannelRunStageSeriali
 from .serializers import ChannelRunProgressSerializer
 from .serializers import ContentChannelSaveToProfileSerializer
 from .serializers import ChannelControlSerializer
-from .utils import load_tree_for_channel, set_run_options, calculate_channel_id
+from .utils import set_run_options, calculate_channel_id
+
 
 from sushibar.services.trello.api import trello_move_card_to_qa_list, trello_add_checklist_item, trello_add_channel_link
 from sushibar.services.google.api import create_qa_sheet
+from sushibar.tasks import load_tree_for_channel_task
 
 # REDIS connection #############################################################
 import redis
@@ -252,7 +254,15 @@ class ChannelRunStageListCreate(APIView):
                                                        duration=duration)
             if run_stage.name == 'COMPLETED':
                 run = ContentChannelRun.objects.get(run_id=run_id)
-                load_tree_for_channel(run)
+                # run `load_tree_for_channel` as a background task
+                run_dict = dict(
+                    content_server=run.content_server,
+                    channel_id=run.channel.channel_id.hex,
+                    started_by_user_token=run.started_by_user_token,
+                    tree_data_path=run.get_tree_data_path(),
+                )
+                print('using run_dict', run_dict)
+                load_tree_for_channel_task.delay(run_dict)
                 set_run_options(run)
                 run.channel.new_run_complete = True
                 run.channel.save()

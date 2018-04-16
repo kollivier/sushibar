@@ -3,6 +3,12 @@ Sushi bar
 The place where all the sushi chefs hang out.
 
 
+TODO:
+
+  - Look into celery beat for long term replacement to crontab setup
+    http://docs.celeryproject.org/en/latest/userguide/periodic-tasks.html
+
+
 Features
 --------
   - Dashboard to monitor chefs' progress, logs, and run history
@@ -66,9 +72,12 @@ Alternatively, you can create a new admin account using:
 
 Run in development
 ------------------
+You'll need four separate tabs to run the four services needed for `sushibar`:
 
-    ./manage.py runserver
-
+    pg_ctl ... start                        # to start postgres
+    redis-server ...                        # run redis
+    celery -A sushibar worker -l info       # run celery worker
+    ./manage.py runserver                   # run django (wsgi+asgi)
 
 
 Running tests
