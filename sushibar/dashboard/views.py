@@ -125,24 +125,9 @@ def get_bulk_status_mapping_for_channels_as_baruser(channels, baruser):
     for studio_server, channels in channels_by_studio_server.items():
         # print('Making bulk request to', studio_server)
         channel_ids = [c.channel_id.hex for c in channels]
-        #
-        # Currently (mid-Feb) get_channel_status_bulk errors out when queried about
-        # any `channel_id`s that studio doesn't know about. A better behavior is
-        # to ignore uknown channel_ids and return statuses for all the ones i knows about.
-        # The endpoint /api/internal/get_channel_status_bulk is needed for performance
-        # when reasons when rendering the DashboardView listing page.
-        #    |
-        #    |
-        # UNCOMMENT the next 2 lines when get_channel_status_bulk fixed:
-        # statuses_dict = get_channel_status_bulk(studio_server, baruser.cctoken, channel_ids)
-        # status_mapping = status_mapping.update(statuses_dict)
-        #
-        #    |
-        #    |
-        # TEMPORARY WORKAROUND (remove the next 3 lines when get_channel_status_bulk fixed)
-        for channel_id in channel_ids:
-            statuses_dict = get_channel_status_bulk(studio_server, baruser.cctoken, [channel_id])
-            status_mapping.update(statuses_dict)
+        statuses_dict = get_channel_status_bulk(studio_server, baruser.cctoken, channel_ids)
+        status_mapping = status_mapping.update(statuses_dict)
+
 
     return status_mapping
 
