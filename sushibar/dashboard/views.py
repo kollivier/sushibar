@@ -126,9 +126,8 @@ def get_bulk_status_mapping_for_channels_as_baruser(channels, baruser):
         # print('Making bulk request to', studio_server)
         channel_ids = [c.channel_id.hex for c in channels]
         statuses_dict = get_channel_status_bulk(studio_server, baruser.cctoken, channel_ids)
-        status_mapping = status_mapping.update(statuses_dict)
-
-
+        status_mapping.update(statuses_dict)
+    #
     return status_mapping
 
 
@@ -196,6 +195,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         try:
             status_mapping = get_bulk_status_mapping_for_channels_as_baruser(channels, self.request.user)
         except Exception as e:
+            status_mapping = {}
             print('ERROR during get_bulk_status_mapping_for_channels_as_baruser, continuing...', e)
 
         # MAIN LOOP
@@ -257,7 +257,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                 "stop_color": "danger" if active else "secondary",
                 "active": active,
                 "id": channel.channel_id.hex,
-                "ccstatus": get_status_for_mapping(channel, status_mapping, run=last_run),
+                "ccstatus": ccstatus,
                 "starred": starred,
                 "last_run_date": datetime.strftime(last_event.finished, "%b %d, %H:%M"),
                 "last_run_id": last_run.run_id,
