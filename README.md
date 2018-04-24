@@ -8,6 +8,10 @@ TODO:
   - Look into celery beat for long term replacement to crontab setup
     http://docs.celeryproject.org/en/latest/userguide/periodic-tasks.html
 
+  - Add reasonable timeouts to all Studio-backend related requests (to avoid waiting
+    on non-existent studio servers.)
+
+
 
 Features
 --------
