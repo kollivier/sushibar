@@ -1,16 +1,19 @@
 import datetime
 import json
+import logging
 import re
 import requests
 import urllib
+
 
 from django.conf import settings
 from django.contrib.sites.shortcuts import get_current_site
 from django.http import Http404, HttpResponse, HttpResponseBadRequest, HttpResponseNotFound, HttpResponseForbidden
 from rest_framework.response import Response
-from rest_framework.views import APIView
+from rest_framework.views import APIView, status
 
 from sushibar.runs.models import ContentChannel
+from sushibar.services.google.api import create_qa_sheet
 from sushibar.services.trello import config
 
 TRELLO_API_KEY = settings.TRELLO_API_KEY
@@ -299,8 +302,43 @@ class TrelloMoveToQAList(TrelloBaseMoveList):
     """
     Move card to QA list
     """
-    list_id = config.TRELLO_QA_LIST_ID
-    due_days_from_now = TRELLO_QA_DEADLINE
+    list_id = config.TRELLO_FEEDBACK_LIST_ID
+    due_days_from_now = TRELLO_FEEDBACK_DEADLINE
+
+
+class ContentChannelFlagForQA(APIView):
+    """
+    Flag channel for QA:
+      - Move card to QA list
+      - Create QA sheet and save it to Content/QA/ folder on the LE shared drive
+    """
+
+    def post(self, request, channel_id, format=None):
+        """
+        Handle "flag_for_qa" ajax calls.
+        """
+        try:
+            channel = ContentChannel.objects.get(channel_id=channel_id)
+        except ContentChannel.DoesNotExist:
+            raise Http404
+
+        # TODO: Don't generate if channel.qa_sheet_id already exists!
+        if not channel.qa_sheet_id:
+            channel.qa_sheet_id = create_qa_sheet(channel.name + " QA")
+            channel.save()
+
+        message = "Fill out [QA sheet]({})".format("https://docs.google.com/spreadsheets/d/{}/edit".format(channel.qa_sheet_id))
+        trello_response = trello_add_checklist_item(channel, message)
+
+        response = trello_move_card_to_qa_list(channel)
+        response.raise_for_status()
+
+        card_id = extract_id(channel.trello_url)
+        trello_set_due_date(card_id, TRELLO_QA_DEADLINE)
+
+        return Response({"success": True, "qa_sheet_id": channel.qa_sheet_id}, status=status.HTTP_200_OK)
+
+
 
 class TrelloMoveToDoneList(TrelloBaseMoveList):
     """

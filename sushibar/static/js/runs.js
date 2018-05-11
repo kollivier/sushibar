@@ -183,7 +183,7 @@ function create_config(data) {
   function trello_flag_channel_for_qa(onpending, onsuccess, onerror) {
     onpending();
     $.ajax({
-      url: "/api/channels/" + channel_id + "/flag_for_qa/",
+      url: "/services/trello/" + channel_id + "/flag_for_qa/",
       type: "POST",
       success: function(data) {
         $("#feedback-link").attr("href", "https://docs.google.com/spreadsheets/d/" + data.qa_sheet_id);

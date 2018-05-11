@@ -1,7 +1,14 @@
 from django.conf.urls import url
 from rest_framework.urlpatterns import format_suffix_patterns
 
-from .api import ContentChannelSaveTrelloUrl, TrelloAddChecklistItem, TrelloMoveToQAList, TrelloNotifyCardChange, TrelloSendComment, TrelloMoveToDoneList, TrelloMoveToPublishList
+from .api import (ContentChannelSaveTrelloUrl,
+                  TrelloAddChecklistItem,
+                  TrelloMoveToFeedbackList,
+                  ContentChannelFlagForQA,
+                  TrelloNotifyCardChange,
+                  TrelloSendComment,
+                  TrelloMoveToDoneList,
+                  TrelloMoveToPublishList)
 
 urlpatterns = [
     # Save Trello URL to channel
