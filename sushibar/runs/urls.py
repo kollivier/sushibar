@@ -8,7 +8,6 @@ from .api import ChannelRunProgressEndpoints
 from .api import ContentChannelSaveToProfile
 from .api import ChannelControlEndpoints
 from .api import ContentChannelDelete
-from .api import ContentChannelFlagForQA
 
 urlpatterns = [
     url(regex=r'channels/$',
@@ -26,10 +25,6 @@ urlpatterns = [
     url(regex=r'channels/(?P<channel_id>[0-9A-Fa-f-]+)/save_to_profile/$',
         view=ContentChannelSaveToProfile.as_view(),
         name='save_channel_to_profile'),
-    #
-    url(regex=r'channels/(?P<channel_id>[0-9A-Fa-f-]+)/flag_for_qa/$',
-        view=ContentChannelFlagForQA.as_view(),
-        name='flag_channel_for_qa'),
     #
     url(regex=r'channels/(?P<channel_id>[0-9A-Fa-f-]+)/delete_channel/$',
         view=ContentChannelDelete.as_view(),
