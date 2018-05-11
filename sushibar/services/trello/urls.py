@@ -21,9 +21,14 @@ urlpatterns = [
         view=TrelloAddChecklistItem.as_view(),
         name='trello_add_checklist_item'),
 
-   	# Move card to QA list
+   	# Move card to Feedback Needed list
+    url(regex=r'(?P<channel_id>[0-9A-Fa-f-]+)/request_feedback/$',
+        view=TrelloMoveToFeedbackList.as_view(),
+        name='trello_request_feedback'),
+
+   	# Move card to QA list and create QA sheet
     url(regex=r'(?P<channel_id>[0-9A-Fa-f-]+)/flag_for_qa/$',
-        view=TrelloMoveToQAList.as_view(),
+        view=ContentChannelFlagForQA.as_view(),
         name='trello_flag_channel_for_qa'),
 
     # Move card to DONE list

@@ -21,33 +21,49 @@ TRELLO_TOKEN = settings.TRELLO_TOKEN
 TRELLO_BOARD = settings.TRELLO_BOARD
 TRELLO_URL = "https://api.trello.com/1/"
 
+TRELLO_FEEDBACK_DEADLINE = 2    # Number of days to allow for feedback from IMPS
 TRELLO_QA_DEADLINE = 7          # Number of days to allow for QA
 TRELLO_PUBLISH_DEADLINE = 3     # Number of days to allow for publish
 
-# Trello Requests
+
+
+logger = logging.getLogger(__name__)
+
+
+# TRELLO HTTP REQUESTS
+################################################################################
+
 def post_request(endpoint, data=None):
+    logger.debug('calling post_request with endpoint=' + str(endpoint) + ' data=' + str(data))
     url = "{}{}".format(TRELLO_URL, endpoint)
     data = data or {}
     data.update({"key": TRELLO_API_KEY, "token": TRELLO_TOKEN})
     return requests.post(url, data=data)
 
 def put_request(endpoint, data=None):
+    logger.debug('calling put_request with endpoint=' + str(endpoint) + ' data=' + str(data))
     url = "{}{}".format(TRELLO_URL, endpoint)
     data = data or {}
     data.update({"key": TRELLO_API_KEY, "token": TRELLO_TOKEN})
     return requests.put(url, data=data)
 
 def get_request(endpoint, data=None):
+    logger.debug('calling get_request with endpoint=' + str(endpoint) + ' data=' + str(data))
     url = "{}{}".format(TRELLO_URL, endpoint)
     data = data or {}
     data.update({"key": TRELLO_API_KEY, "token": TRELLO_TOKEN})
     return requests.get("{}?{}".format(url, urllib.parse.urlencode(data)))
 
 def delete_request(endpoint, data=None):
+    logger.debug('calling delete_request with endpoint=' + str(endpoint) + ' data=' + str(data))
     url = "{}{}".format(TRELLO_URL, endpoint)
     data = data or {}
     data.update({"key": TRELLO_API_KEY, "token": TRELLO_TOKEN})
     return requests.delete("{}?{}".format(url, urllib.parse.urlencode(data)))
+
+
+# TRELLO CARD FUNCTIONS
+################################################################################
 
 def trello_set_due_date(card_id, due_days_from_now):
     due_date = datetime.datetime.now() + datetime.timedelta(days=due_days_from_now)
@@ -73,7 +89,6 @@ def trello_move_card_to_done_list(channel):
 
 
 def trello_create_webhook(request, channel, card_id):
-
     # Delete webhook if no channels are using it
     if channel.trello_webhook_id and not ContentChannel.objects.filter(trello_webhook_id=channel.trello_webhook_id).exists():
         delete_request("webhooks/{}".format(channel.trello_webhook_id))
@@ -99,7 +114,6 @@ def trello_create_webhook(request, channel, card_id):
 
     channel.save()
 
-
 def trello_get_list_name(channel):
     card_id = extract_id(channel.trello_url)
     response = get_request("cards/{}".format(card_id))
@@ -118,7 +132,6 @@ def validate_trello_card(trello_url):
     return response.status_code == 200
 
 def trello_add_card_to_channel(request, channel, trello_url):
-
     # Check the url is formatted correctly
     card_id = extract_id(trello_url)
     if not card_id:
@@ -140,7 +153,7 @@ def trello_add_card_to_channel(request, channel, trello_url):
         return HttpResponseBadRequest(response.content.capitalize())
 
 def trello_add_checklist_item(channel, message):
-     # Get any checklists that are on the card
+    # Get any checklists that are on the card
     card_id = extract_id(channel.trello_url)
     checklist_response = get_request("cards/{}/checklists".format(card_id))
     checklists = json.loads(checklist_response.content.decode('utf-8'))
@@ -200,6 +213,14 @@ def extract_id(url):
 
 def format_datetime(dt):
     return dt.strftime("%b %d, %Y at %I:%M%p")
+
+
+
+
+
+
+# SUSHIBAR TRELLO API VIEWS
+################################################################################
 
 class TrelloBaseView(APIView):
 
@@ -298,9 +319,9 @@ class TrelloBaseMoveList(TrelloBaseView):
         return HttpResponse(list_response.content)
 
 
-class TrelloMoveToQAList(TrelloBaseMoveList):
+class TrelloMoveToFeedbackList(TrelloBaseMoveList):
     """
-    Move card to QA list
+    Move card to "Feedback needed" list
     """
     list_id = config.TRELLO_FEEDBACK_LIST_ID
     due_days_from_now = TRELLO_FEEDBACK_DEADLINE

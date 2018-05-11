@@ -54,7 +54,10 @@
                   <a class="pull-right trello-alert-mark-done">DONE</a>
                 {% else %}<i class="pull-right">Run chef to continue</i>
                 {% endif %}{% endif %}
-                {% if channel.new_run_complete %}<a class="pull-right trello-alert-flag-for-qa">FLAG FOR QA</a>{% endif %}
+                {% if channel.new_run_complete %}
+                  <a class="pull-right trello-alert-flag-for-qa">FLAG FOR QA</a>
+                  <a class="pull-right trello-alert-request-feedback">REQUEST FEEDBACK</a>
+                {% endif %}
               </span>
               <span class="alert-processing hidden">
                 <b>PROCESSING...</b>
@@ -242,9 +245,13 @@
             <a class="btn btn-darkgray" href="{{channel_url}}" target="_blank">OPEN CHANNEL</a>
             <br>
             <br>
-            {% if channel.chef_repo_url %}<a class="link-gray" href="{{channel.chef_repo_url}}" target="_blank">View on Github</a>{% endif %}
+            {% if channel.chef_repo_url %}
+              <a class="link-gray" href="{{channel.chef_repo_url}}" target="_blank">View on Github</a>
+            {% endif %}
             &nbsp;&nbsp;
-            {% if channel.spec_sheet_url %}<a class="link-gray" href="{{channel.spec_sheet_url}}" target="_blank">View Specs</a>{% endif %}
+            {% if channel.spec_sheet_url %}
+              <a class="link-gray" href="{{channel.spec_sheet_url}}" target="_blank">View Specs</a>
+            {% endif %}
             &nbsp;
             {% for action in actions %}
               <a class="link-gray" href="{{action.url}}" target="_blank">{{action.action_text}}</a>
@@ -253,8 +260,14 @@
             <br>
           </div>
           <hr/>
-          <h5><b><em class="fa fa-trello trello-icon"></em> &nbsp;Trello Options</b></h5>
+          <h5><b><em class="fa fa-trello trello-icon"></em> &nbsp;Cheffing Pipeline State</b></h5>
         {% endif %}
+        <div class="trello-instructions">
+            <p>Use the <a href="https://trello.com/b/vVQfKuJB/chef-pipeline">chef-pipeline</a> trello board
+               to keep track the channel's progress and communicate with the rest of the team.
+               This channel's card is shown below:
+             </p>
+        </div>
         <br/>
         <div class="alert alert-success trello-alert trello-success text-center" role="alert" id="trello-success"></div>
         <div class="alert alert-warning trello-pending trello-alert text-center" role="alert" id="trello-pending">Pending...</div>
@@ -276,10 +289,25 @@
           </div>
           <br/>
           <div class="text-center" id="trello-options">
-            <a class="btn btn-gray trello-action" id="trello-link-comment" data-toggle="collapse" data-target="#trello-comment-section" aria-expanded="false" aria-controls="trello-comment-section">Comment</a>
-            {% if request_storage_email %}<a class="btn btn-gray trello-action" id="trello-link-storage">Request Storage</a>{% endif %}
+            <a class="btn btn-gray trello-action"
+               id="trello-link-comment"
+               data-toggle="collapse"
+               data-target="#trello-comment-section"
+               aria-expanded="false"
+               aria-controls="trello-comment-section">Comment</a>
+            {% if request_storage_email %}
+              <a class="btn btn-gray trello-action" id="trello-link-storage"
+                 data-toggle="tooltip" data-placement="below"
+                 title="Shortcut button for requesting additional storage quota for your account on Studio.">Request Storage</a>
+            {% endif %}
             {% if channel_status != 'New' %}
-              <a class="btn btn-gray trello-action" id="trello-link-qa">Flag for QA</a>
+              <a class="btn btn-gray trello-action"
+                 id="trello-link-request-feedback"
+                 data-toggle="tooltip" data-placement="below"
+                 title="Move the card to the 'Feedback needed' column and flag for the LE team to review and provide feedback on the preliminary, first draft of the channel.">Request Feedback</a>
+              <a class="btn btn-gray trello-action" id="trello-link-qa"
+                 data-toggle="tooltip" data-placement="below"
+                 title="Move the card to the 'QA Needed' column and start the final QA process for this channel.">Flag for QA</a>
             {% endif %}
           </div>
           <div class="collapse" id="trello-comment-section">
