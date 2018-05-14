@@ -180,10 +180,22 @@ function create_config(data) {
     });
   }
 
+  function trello_request_feedback(onpending, onsuccess, onerror) {
+    onpending();
+    $.ajax({
+      url: "/services/trello/" + channel_id + "/request_feedback/",
+      type: "PUT",
+      success: function(data) {
+        onsuccess("Requested feedback for channel");
+      },
+      error: onerror
+    });
+  }
+
   function trello_flag_channel_for_qa(onpending, onsuccess, onerror) {
     onpending();
     $.ajax({
-      url: "/api/channels/" + channel_id + "/flag_for_qa/",
+      url: "/services/trello/" + channel_id + "/flag_for_qa/",
       type: "POST",
       success: function(data) {
         $("#feedback-link").attr("href", "https://docs.google.com/spreadsheets/d/" + data.qa_sheet_id);
@@ -227,6 +239,11 @@ function create_config(data) {
 
   function alert_trello_done() {
     trello_move_card_to_list("mark_as_done", "Marked channel as done", alert_trello_pending, alert_trello_success, alert_trello_error);
+  }
+
+  function alert_trello_feedback() {
+    console.log('In alert_trello_feedback..')
+    trello_request_feedback(alert_trello_pending, alert_trello_success, alert_trello_error);
   }
 
   function alert_trello_qa() {
@@ -336,8 +353,11 @@ $(function() {
   $("#submit-trello-link").on("click", trello_submit_url);
   $("#trello-link-edit").on("click", trello_edit_url);
   $("#remove-trello-link").on("click", trello_remove_url);
+  $("#trello-link-request-feedback").on("click", function() {
+    trello_request_feedback(trello_pending, trello_success, trello_error);
+  });
   $("#trello-link-qa").on("click", function() {
-    trello_flag_channel_for_qa(trello_pending,trello_success, trello_error);
+    trello_flag_channel_for_qa(trello_pending, trello_success, trello_error);
   });
   $("#trello-link-publish").on("click", trello_flag_channel_for_publish);
   $("#trello-link-storage").on("click", function() {
@@ -349,6 +369,7 @@ $(function() {
   $("#trello-comment").on("keydown", update_trello_comment);
   $("#trello-comment").on("paste", update_trello_comment);
   $(".trello-alert-mark-done").on("click", alert_trello_done);
+  $(".trello-alert-request-feedback").on("click", alert_trello_feedback);
   $(".trello-alert-flag-for-qa").on("click", alert_trello_qa);
   $(".trello-alert-request-publish").on("click", alert_trello_publish);
 

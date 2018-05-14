@@ -37,7 +37,7 @@ djangorestframework==3.7.7
 django-redis==4.8.0
 redis>=2.10.5
 
-requests==2.18.1
+requests==2.18.4
 
 # Authentication for Google API
 gspread==0.6.2

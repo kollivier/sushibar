@@ -71,6 +71,7 @@ def fmt_chef_name(chef_name):
     return re.sub(r'git:[\w\d]+$', 'git', chef_name).replace("github.com","").replace("https://", "").replace("git+ssh://git@", "")
 
 def get_status_for_mapping(channel, mapping, run=None):
+    mapping = mapping or {}
     return get_status(mapping.get(channel.channel_id.hex),  run=run)
 
 def get_status(status, run=None, channel_id=None):
@@ -109,7 +110,7 @@ def get_bulk_status_mapping_for_channels_as_baruser(channels, baruser):
     """
     Makes "bulk requests" to Studio server to get channel status for all the
     channels we're about to display on the dashboard.
-    Assumptions: baruser has access to 
+    Assumptions: baruser has access to
     """
     status_mapping = {}
     # Group requests based on the Studio instance that we need to query
@@ -205,7 +206,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         ########################################################################
         # TODO(arvnd): This can very easily be optimized by querying the runs table directly.
         for channel in channels:
-            
+
             # Get the most recent run for the channel
             try:
                 last_run = channel.runs.latest("created_at")

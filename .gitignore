@@ -2,7 +2,7 @@
 credentials/
 staticfiles/
 local_media/
-
+media/trees/
 
 
 # Byte-compiled / optimized / DLL files

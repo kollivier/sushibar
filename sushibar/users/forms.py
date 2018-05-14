@@ -6,6 +6,7 @@ from django.contrib.auth import (
     authenticate, get_user_model, password_validation,
 )
 from django.contrib.auth.forms import AuthenticationForm
+from django.utils.text import capfirst
 from django.utils.translation import gettext, gettext_lazy as _
 
 
