@@ -1,13 +1,11 @@
-Sushi bar
+Sushi Bar
 =========
 The place where all the sushi chefs hang out.
 
 
 TODO:
-
   - Look into celery beat for long term replacement to crontab setup
     http://docs.celeryproject.org/en/latest/userguide/periodic-tasks.html
-
   - Add reasonable timeouts to all Studio-backend related requests (to avoid waiting
     on non-existent studio servers.)
 
@@ -15,13 +13,31 @@ TODO:
 
 Features
 --------
+  - Runs on docker machine provisioned on GCP, see [docs/docker-machine.md](docs/docker-machine.md).
   - Dashboard to monitor chefs' progress, logs, and run history
   - Remote control of a chefs started with the `--daemon` flag
 
 
 
-Deploy to prod
---------------
+Check on prod
+-------------
+
+    # If needed, login to GCP
+    gcloud auth application-default login
+
+    # check what's running (UP or FAILED)
+    docker ps -a
+
+    # View django logs (like tail -f)
+    docker logs -f  django-wsgi
+
+If you see something fishy (a container that has exited or error logs), you can
+fix then re-deploy using instructions below.
+
+
+
+Deploy code to prod
+-------------------
 Assuming your local repository has latest code + credentials + docker installed:
 
     # setup access to remote docker daemon
@@ -30,6 +46,9 @@ Assuming your local repository has latest code + credentials + docker installed:
     docker-compose -f production.yml  build
     docker-compose -f production.yml  up -d
     docker ps
+
+The command `up -d` means bring up all containers and run in deamon mode.
+This will restart containers that have failed and leave unchanged containers be.
 
 
 
@@ -125,9 +144,7 @@ the tools `docker-machine` and `docker-compose`.
 
     # View nginx+django logs (like tail -f)
     docker-compose -f production.yml  logs -f nginx django-wsgi
-
-Possibly use https://github.com/kubernetes-incubator/kompose to generate the
-Kubernetes config from `production.yml` when it's done.
+    # or if you prefer `docker logs -f django-wsgi`
 
 
 
@@ -231,3 +248,13 @@ Restart from scratch
     docker-compose -f production.yml  build --no-cache
 
     docker-compose -f production.yml  up  # prints combined strout from all containers
+
+
+
+
+
+Future TODOs
+------------
+  - Possibly use https://github.com/kubernetes-incubator/kompose to
+    generate the Kubernetes config from `production.yml`.
+

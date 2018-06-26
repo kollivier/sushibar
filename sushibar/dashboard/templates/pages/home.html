@@ -12,7 +12,7 @@
 <div id="dashboard">
 <div class="tab-content container-fluid main-tab-content">
   <div class="row filter-row">
-    <div class="col-8 channel-count">Showing {{channels | length}} Channel{% if channels|length != 1 %}s{% endif%}...</div>
+    <div class="col-8 channel-count">Showing {{channels | length}} Channel{% if channels|length != 1 %}s{% endif%}</div>
     {% if not request.user.is_staff %}<div class="col-1 text-center"></div>{% endif %}
     <div class="col-3">
       <select class="filter">
