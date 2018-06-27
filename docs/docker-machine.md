@@ -7,6 +7,7 @@ deploy to a kubernetes server using `bake`.
 
 
 
+
 Provisioning on GCP
 ===================
 
@@ -41,6 +42,7 @@ to setup a docker host called `gcpsushibarhost` in the Google cloud.
        --google-address gcpsushibarhost-address \
        gcpsushibarhost
 
+See https://docs.docker.com/machine/drivers/gce/#example for all optinos.
 
 Assuming everything goes to plan, a new instance should be running, with docker
 installed on it and the docker daemon listening on port `2375`.
@@ -90,14 +92,33 @@ To destroy the machine:
     docker-machine rm gcpsushibarhost
 
 
+Sharing macine credentials
+--------------------------
+We use https://www.npmjs.com/package/machine-share to export-import certs
+needed to run docker commands (self-signed certificates to authenticate the
+connection to the remote docker socket).
+
+    npm install -g machine-share
+
+then to export:
+
+    cd ~/Desktop
+    machine-export gcpsushibarhost
+
+and to import use:
+
+    machine-import gcpsushibarhost.zip
+
+If the import worked, you sould be able to `docker-machine ssh gcpsushibarhost`
+and have passwordless-sudo access (`sudo su -`).
 
 
 
 
 
-Provisioning on AWS
-===================
 
+Provisioning on AWS (old setup)
+===============================
 We'll use the command line tool `docker-machine` for the following two tasks:
   - Provision an `ec2` instance (a virtual machine rented from AWS) which will
     serve as the docker host
